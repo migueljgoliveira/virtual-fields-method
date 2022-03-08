@@ -1,19 +1,21 @@
 import numpy as np
 import _subroutines
 
-def LogStrain(coord,displ,rotm,ne,npe,dof,ndi,nshr,ntens,nf):
+def LogStrain(coord,displ,rotm,thick,ne,npe,dof,ndi,nshr,ntens,nf):
     """
     Compute the logarithmic strain in local csys by the polar 
       decomposition of the deformation gradient.
 
     Parameters
     ----------
-    coord : (ne,npe,dof),float
+    coord : (ne,npe,dof) , float
         Nodes reference coordinates.
-    displ : (nf,ne,npe,dof),float
+    displ : (nf,ne,npe,dof) , float
         Nodes displacements.
-    rotm : (dof,dof),float
+    rotm : (dof,dof) , float
         Material rotation tensor.
+    thick : float
+        Specimen initial thickness.
     ne : int
         Number of elements.
     npe : int
@@ -31,19 +33,21 @@ def LogStrain(coord,displ,rotm,ne,npe,dof,ndi,nshr,ntens,nf):
 
     Returns
     -------
-    strain : (nf,ne,ntens),float
+    strain : (nf,ne,ntens) , float
         Strain in corotational material csys.
-    rot : (nf,ne,dof,dof),float
+    rot : (nf,ne,dof,dof) , float
         Rotation tensor.
-    dfgrd : (nf,ne,dof,dof),float
+    dfgrd : (nf,ne,dof,dof) , float
         Deformation gradient.
+    vol : (ne,) , float
+        Elements volume.
     """
 
     # Derivatives of shape function and jacobian
     if npe == 4:
-        dNdNr,jac,_ = _subroutines.ElQuad4R(coord)
+        dNdNr,jac,vol = _subroutines.ElQuad4R(coord,thick)
     elif npe == 8:
-        dNdNr,jac,_ = _subroutines.ElHex8R(coord)
+        dNdNr,jac,vol = _subroutines.ElHex8R(coord)
 
     # Deformaton gradient
     dfgrd = _subroutines.DeformationGradient(displ,dNdNr,jac,dof)
@@ -56,8 +60,7 @@ def LogStrain(coord,displ,rotm,ne,npe,dof,ndi,nshr,ntens,nf):
     strain = eigpr * np.log(eigv[...,None,:]) @ np.linalg.inv(eigpr)
 
     # Rotate strain to corotational material csys and convert to voigt
-    strain = _subroutines.RotateTensor(strain,rot,rotm,
-                                       ne,dof,ndi,nshr,ntens,nf,
-                                       dir=-1,voigt=1,eng=1)
+    strain = _subroutines.RotateTensor(strain,rot,rotm,ne,dof,ndi,nshr,
+                                       ntens,nf,dir=-1,voigt=1,eng=1)
 
-    return strain,rot,dfgrd
+    return strain,rot,dfgrd,vol

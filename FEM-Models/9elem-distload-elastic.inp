@@ -52,9 +52,9 @@
 *Instance, name=Part-1-1, part=Part-1
 *End Instance
 **  
-*Nset, nset=Set-1, instance=Part-1-1, generate
+*Nset, nset=LOAD, instance=Part-1-1, generate
  13,  16,   1
-*Elset, elset=Set-1, instance=Part-1-1, generate
+*Elset, elset=LOAD, instance=Part-1-1, generate
  7,  9,  1
 *Nset, nset=Set-2, instance=Part-1-1, generate
   4,  16,   4
@@ -89,14 +89,21 @@ _Surf-1_S1, S1
 Set-2, 1, 1
 ** Name: BC-2 Type: Displacement/Rotation
 *Boundary
-Set-1, 2, 2
+LOAD, 2, 2
+LOAD, 6, 6
 ** ----------------------------------------------------------------
 ** 
 ** STEP: Step-1
 ** 
-*Step, name=Step-1, nlgeom=NO
+*Step, name=Step-1, nlgeom=YES
 *Static
 1., 1., 1e-05, 1.
+** 
+** BOUNDARY CONDITIONS
+** 
+** Name: BC-1 Type: Displacement/Rotation
+*Boundary
+Set-2, 6, 6
 ** 
 ** LOADS
 ** 

@@ -4,9 +4,9 @@ def DimVars(coord,conn):
 
     Parameters
     ----------
-    coord : (nn,dof),float
+    coord : (nn,dof) , float
         Nodes reference coordinates.
-    conn : (ne,npe),int
+    conn : (ne,npe) , int
         Elements connectivity.
 
     Returns

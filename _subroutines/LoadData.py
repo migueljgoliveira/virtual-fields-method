@@ -12,22 +12,18 @@ def LoadData(name):
 
     Returns
     -------
-    coord : (nn,dof),float
+    coord : (nn,dof) , float
         Nodes reference coordinates.
-    displ : (nf,nn,dof),float
+    displ : (nf,nn,dof) , float
         Nodes displacements.
-    conn : (ne,npe),int
+    conn : (ne,npe) , int
         Elements connectivity.
-    nn : int
-        Number of nodes.
-    ne : int
-        Number of elements.
-    npe : int
-        Number of nodes per element.
-    dof : int
-        Number of degrees of freedom.
-    ndi : int
-        Number of dimensions.
+    centroid : (ne,dof) , float
+        Elements centroid reference coordinates.
+    force : (nf,dof),float
+        Global loading force.
+    thick : float
+        Specimen initial thickness.
     nf : int
         Number of increments.
     """
@@ -64,4 +60,11 @@ def LoadData(name):
     filename = f'{basedir}_Force.csv'
     force = np.loadtxt(filename,skiprows=1,delimiter=';')[:,1:]
 
-    return coord,displ,conn,force,nf
+    # Load specimen thickness
+    filename = f'{basedir}_Thickness.csv'
+    thick = float(np.loadtxt(filename,skiprows=1,delimiter=';'))
+
+    # Compute elements centroid
+    centroid = np.mean(coord[conn],1)
+
+    return coord,displ,conn,centroid,force,thick,nf

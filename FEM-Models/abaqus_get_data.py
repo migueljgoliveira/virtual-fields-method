@@ -37,18 +37,25 @@ def main():
         conn[i,1:] = np.array(elset.elements[0][i].connectivity) - 1
 
     # number of increments
-    incs = len(odb.steps['Step-1'].frames)
+    nf = len(odb.steps['Step-1'].frames)
 
-    # get field output variables
-    displ = np.zeros((nn,dof+1,incs))
-
-    for i in range(incs):
+    # get nodes displacements
+    displ = np.zeros((nf,nn,dof+1))
+    for i in range(nf):
         fieldOut = odb.steps['Step-1'].frames[i].fieldOutputs
 
-        # get displacements
         auxdispl = fieldOut['U'].getSubset(region=nset,position=NODAL)
-        displ[:,0,i] = auxdispl.bulkDataBlocks[0].nodeLabels  - 1
-        displ[:,1:,i] = auxdispl.bulkDataBlocks[0].data
+        displ[i,:,0] = auxdispl.bulkDataBlocks[0].nodeLabels  - 1
+        displ[i,:,1:] = auxdispl.bulkDataBlocks[0].data
+
+    # get load force
+    lset = odb.rootAssembly.nodeSets['LOAD']
+    force = np.zeros((nf,dof+1))
+    for i in range(nf):
+        fieldOut = odb.steps['Step-1'].frames[i].fieldOutputs
+        auxforce = fieldOut['RF'].getSubset(region=lset,position=NODAL)
+        force[i,0] = odb.steps['Step-1'].frames[i].frameValue
+        force[i,2] = abs(np.sum(auxforce.bulkDataBlocks[0].data[:,1]))
 
     with open('%s_Elements.csv'%(output),'w') as f:
         if npe == 4:
@@ -64,14 +71,38 @@ def main():
             f.write('Node;X;Y;Z\n')
         np.savetxt(f,coord,fmt='%.12f',delimiter=';')
 
-    for i in range(incs):
+    for i in range(nf):
         with open('%s_U_%d.csv'%(output,i),'w') as f:
             if dof == 2:
                 f.write('Node;U;V\n')
             if dof == 3:
                 f.write('Node;U;V;W\n')
-            np.savetxt(f,displ[...,i],fmt='%.12f',delimiter=';')
+            np.savetxt(f,displ[i,...],fmt='%.12f',delimiter=';')
 
+    with open('%s_Force.csv'%(output),'w') as f:
+        if dof == 2:
+            f.write('Time;X;Y\n')
+        if dof == 3:
+            f.write('Time;X;Y;Z\n')
+        np.savetxt(f,force,fmt='%.12f',delimiter=';')
+
+
+    # get stress
+    stress = np.zeros((nf,ne,3+1))
+    for i in range(nf):
+        fieldOut = odb.steps['Step-1'].frames[i].fieldOutputs
+
+        auxstress = fieldOut['S'].getSubset(region=elset,position=CENTROID)
+        stress[i,:,0] = auxstress.bulkDataBlocks[0].elementLabels  - 1
+        stress[i,:,1:] = auxstress.bulkDataBlocks[0].data[:,[0,1,3]]
+
+    for i in range(nf):
+        with open('%s_S_%d.csv'%(output,i),'w') as f:
+            if dof == 2:
+                f.write('Element;XX;YY;XY\n')
+            if dof == 3:
+                f.write('Element;XX;YY;ZZ;XY;XZ;YZ\n')
+            np.savetxt(f,stress[i,...],fmt='%.12f',delimiter=';')
     return
 
 if __name__ == "__main__":

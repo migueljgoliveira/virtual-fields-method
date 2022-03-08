@@ -7,18 +7,18 @@ def PiolaKirchhoffStress(stress,d33,dfgrd,dof):
 
     Parameters
     ----------
-    stress : (nf,ne,dof,dof),float
+    stress : (nf,ne,dof,dof) , float
         Cauchy stress in global csys.
-    d33 : (nf,ne),float
+    d33 : (nf,ne) , float
         Strain in thickness direction.
-    dfgrd : (nf,ne,dof,dof),float
+    dfgrd : (nf,ne,dof,dof) , float
         Deformation gradient.
     dof : int
         Number of degrees of freedom.
 
     Returns
     -------
-    pkstress : (nf,ne,dof,dof),float
+    pkstress : (nf,ne,dof,dof) , float
         1st piola-kirchhoff stress.
 
     Notes

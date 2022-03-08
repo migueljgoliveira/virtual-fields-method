@@ -6,18 +6,18 @@ def DeformationGradient(displ,dNdNr,jac,dof):
 
     Parameters
     ----------
-    displ : (nf,ne,npe,dof),float
+    displ : (nf,ne,npe,dof) , float
         Nodes displacements.
-    dNdNr : (dof,npe),float
+    dNdNr : (dof,npe) , float
         Shape function derivatives wrt natural  coordinates.
-    jac : (ne,dof,dof),float
+    jac : (ne,dof,dof) , float
         Jacobian matrix.
     dof : int
         Number of degrees of freedom.
 
     Returns
     -------
-    dfgrd : (nf,ne,dof,dof),float
+    dfgrd : (nf,ne,dof,dof) , float
         Deformation gradient.
 
     Notes

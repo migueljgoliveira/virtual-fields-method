@@ -1,22 +1,24 @@
 import numpy as np
 
-def ElQuad4R(coord):
+def ElQuad4R(coord,thick):
     """
     4-Node quadrilateral element w. reduced integration.
 
     Parameters
     ----------
-    coord : (ne,4,2),float
+    coord : (ne,4,2) , float
         Nodes reference coordinates.
+    thick : float
+        Specimen initial thickness.
 
     Returns
     -------
-    dNdNr : (ne,2,4),float
+    dNdNr : (ne,2,4) , float
         Shape function derivatives wrt natural coordinates.
-    jac : (ne,2,2),float
+    jac : (ne,2,2) , float
         Jacobian matrix.
-    area : (ne,),float
-        Element area.
+    vol : (ne,) , float
+        Element volume.
 
     Notes
     -----
@@ -48,7 +50,7 @@ def ElQuad4R(coord):
     # Jacobian matrix
     jac = dNdNr @ coord
 
-    # element area
-    area = np.linalg.det(jac)*4.0
+    # Element volume
+    vol = thick * np.linalg.det(jac) * 4.0
 
-    return dNdNr,jac,area
+    return dNdNr,jac,vol

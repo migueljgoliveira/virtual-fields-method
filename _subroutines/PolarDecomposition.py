@@ -6,14 +6,14 @@ def PolarDecomposition(dfgrd,side='left'):
 
     Parameters
     ----------
-    dfgrd : (nf,ne,dof,dof),float
+    dfgrd : (nf,ne,dof,dof) , float
         Deformation gradient.
 
     Returns
     -------
-    rot : (nf,ne,dof,dof),float
+    rot : (nf,ne,dof,dof) , float
         Rigid-body rotation tensor.
-    strch : (nf,ne,dof,dof),float
+    strch : (nf,ne,dof,dof) , float
         Deformation left or right stretch tensor.
 
     Notes
@@ -35,10 +35,10 @@ def PolarDecomposition(dfgrd,side='left'):
     The deformation gradient F can be written as
         F = VR or F = UR,
       where V is the left-stretch tensor and U is the right-stretch
-      tensor. U is the stretch tensor on the global csys and V is the
-      stress tensor on the local csys. This way, U can be said to be
+      tensor. V is the stretch tensor on the global csys and U is the
+      stretch tensor on the corotational csys. This way, U can be said to be
       the stretch tensor free of rigid-body rotations, so that the
-      relationship between V and U is given by U = R'UR.
+      relationship between V and U is given by U = R'VR.
     """
 
     # Singular value decomposition of deformation gradient

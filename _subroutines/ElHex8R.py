@@ -6,16 +6,16 @@ def ElHex8R(coord):
 
     Parameters
     ----------
-    coord : (ne,8,3),float
+    coord : (ne,8,3) , float
         Nodes reference coordinates.
 
     Returns
     -------
-    dNdNr : (ne,3,8),float
+    dNdNr : (ne,3,8) , float
         Shape function derivatives wrt natural coordinates.
-    jac : (ne,3,3),float
+    jac : (ne,3,3) , float
         Jacobian matrix.
-    evol : (ne,),float
+    vol : (ne,) , float
         Element volume.
 
     Notes
@@ -54,6 +54,6 @@ def ElHex8R(coord):
     jac = dNdNr @ coord
 
     # Element volume
-    evol = np.linalg.det(jac)*8.0
+    vol = np.linalg.det(jac)*8.0
 
-    return dNdNr,jac,evol
+    return dNdNr,jac,vol

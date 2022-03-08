@@ -7,11 +7,11 @@ def RotateTensor(array,rot,rotm,ne,dof,ndi,nshr,ntens,nf,dir,voigt=1,eng=0):
 
     Parameters
     ----------
-    array : (nf,ne,ntens),float or (nf,ne,dof,dof),float
+    array : (nf,ne,ntens) , float or (nf,ne,dof,dof) , float
         Array, either voigt or tensor form.
-    rot : (nf,ne,dof,dof),float
+    rot : (nf,ne,dof,dof) , float
         Rigid-body rotation tensor.
-    rotm : (dof,dof),float
+    rotm : (dof,dof) , float
         Material rotation tensor.
     ne : int
         Number of elements.
@@ -34,7 +34,7 @@ def RotateTensor(array,rot,rotm,ne,dof,ndi,nshr,ntens,nf,dir,voigt=1,eng=0):
 
     Returns
     -------
-    arrayR : (nf,ne,ntens),float or (nf,ne,dof,dof),float
+    arrayR : (nf,ne,ntens) , float or (nf,ne,dof,dof) , float
         Rotated array, either voigt or tensor form.
 
     Notes

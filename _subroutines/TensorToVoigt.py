@@ -6,7 +6,7 @@ def TensorToVoigt(tensor,ne,ndi,ntens,nf,eng=0):
 
     Parameters
     ----------
-    tensor : (nf,ne,dof,dof),float
+    tensor : (nf,ne,dof,dof) , float
         Array in tensor form.
     ne : int
         Number of elements.
@@ -21,7 +21,7 @@ def TensorToVoigt(tensor,ne,ndi,ntens,nf,eng=0):
 
     Returns
     -------
-    voigt : (nf,ne,ntens),float
+    voigt : (nf,ne,ntens) , float
         Array in voigt notation.
 
     Notes

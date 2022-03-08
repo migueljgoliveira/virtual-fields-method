@@ -3,13 +3,13 @@ from ummdp_vfm import ummdp_vfm as umat
 
 def CauchyStress(strain,props,nprops,ne,ndi,nshr,ntens,nstatev,nf):
     """
-    Compute the cauchy stress in local csys by the euler-backward integration scheme.
+    Compute the cauchy stress in local csys using the backward-Euler with an elastic predictor and plastic corrector.
 
     Parameters
     ----------
-    strain : (nf,ne,ntens),float
+    strain : (nf,ne,ntens) , float
         Strain in corotational material csys.
-    props : (nprops,),float
+    props : (nprops,) , float
         Material properties.
     nprops : int
         Number of material properties.
@@ -28,9 +28,9 @@ def CauchyStress(strain,props,nprops,ne,ndi,nshr,ntens,nstatev,nf):
 
     Returns
     -------
-    stress : (nf,ne,ntens),float
+    stress : (nf,ne,ntens) , float
         Cauchy stress in corotational material csys.
-    d33 : (nf,ne),float
+    d33 : (nf,ne) , float
         Strain in thickness direction.
     """
 
