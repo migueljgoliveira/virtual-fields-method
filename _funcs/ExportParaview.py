@@ -1,0 +1,77 @@
+import os
+import shutil
+import meshio
+import numpy as np
+
+def export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,nf,nvfs,
+                    out,folder='output'):
+    """
+    Export experimental finite element mesh to paraview file.
+
+    Parameters
+    ----------
+    coord : (nn,dof) , float
+        Nodes reference coordinates.
+    displ : (nf,nn,dof) , float
+        Nodes displacements.
+    conn : (ne,npe) , int
+        Elements connectivity.
+    strain : (nf,ne,ntens) , float
+        Strain in global csys.
+    stress : (nf,ne,ntens) , float
+        Cauchy stress in global csys.
+    statev : (nf,ne,ntens+1) , float
+        Internal state variables in global csys.
+    d33 : (nf,ne) , float
+        Strain in thickness direction.
+    vfs : {(nvfs,ne,dof,dof), (nvfs,nn,dof)} , float
+        User defined virtual fields.
+    """
+
+    # Swap out-of-plane shear components for paraview notation
+    if dof == 3:
+        strain = strain[...,[0,1,2,3,5,4]]
+        stress = stress[...,[0,1,2,3,5,4]]
+        statev[...,1:] = statev[...,[1,2,3,4,6,5]]
+
+    # Nodes and elements connectivity
+    points = coord
+    if dof == 2:
+        cells = [('quad',conn)]
+    elif dof == 3:
+        cells = [('hexahedron',conn)]
+
+    # Output paraview file
+    outF = f'{os.getcwd()}\\{folder}\\{out}\\{out}'
+    with meshio.xdmf.TimeSeriesWriter(f'{outF}.xdmf') as w:
+
+        w.write_points_cells(points,cells)
+
+        for f in range(nf):
+            pdata = {
+                      'X': coord + displ[f,...],
+                      'U': displ[f,...],
+                    }
+            cdata = {
+                     'LE': [strain[f,...]],
+                      'S': [stress[f,...]],
+                   'PEEQ': [statev[f,...,0]],
+                     'PE': [statev[f,...,1:]],
+                    }
+
+            # Add virtual strain fields
+            if (folder == 'output') and (f == 0):
+                for i in range(nvfs):
+                    cdata[f'VF{i+1}'] = [vfs['e'][i,...]]
+
+            # Add thickness strain
+            if dof == 2:
+                cdata['d33'] = [d33[f,...]]
+
+            # Write data
+            w.write_data(f,point_data=pdata,cell_data=cdata)
+
+    # Move .h5 file from cwd to output folder
+    shutil.move(f'{out}.h5',f'{outF}.h5')
+
+    return
