@@ -8,8 +8,9 @@ def main():
 
     # input settings
     dof = 2
-    folder = 'Double-Notched-2D'
+    folder = 'Double-Notched'
     odbFile = folder
+    output = 'Double-Notched-90'
 
     # nodes per element
     if dof == 2:
@@ -74,14 +75,14 @@ def main():
     coord[:,0] = nid
     displ[:,:,0] = nid
 
-    with open('%s/%s_Elements.csv'%(folder,odbFile),'w') as f:
+    with open('%s/%s_Elements.csv'%(folder,output),'w') as f:
         if npe == 4:
             f.write('Element;Node-1;Node-2;Node-3;Node-4\n')
         if npe == 8:
             f.write('Element;Node-1;Node-2;Node-3;Node-4;Node-5;Node-6;Node-7;Node-8\n')
         np.savetxt(f,newconn,fmt='%d',delimiter=';')
 
-    with open('%s/%s_Nodes.csv'%(folder,odbFile),'w') as f:
+    with open('%s/%s_Nodes.csv'%(folder,output),'w') as f:
         if dof == 2:
             f.write('Node;X;Y\n')
         if dof == 3:
@@ -89,14 +90,14 @@ def main():
         np.savetxt(f,coord,fmt='%.12f',delimiter=';')
 
     for i in range(nf):
-        with open('%s/%s_U_%d.csv'%(folder,odbFile,i),'w') as f:
+        with open('%s/%s_U_%d.csv'%(folder,output,i),'w') as f:
             if dof == 2:
                 f.write('Node;U;V\n')
             if dof == 3:
                 f.write('Node;U;V;W\n')
             np.savetxt(f,displ[i,...],fmt='%.12f',delimiter=';')
 
-    with open('%s/%s_Force.csv'%(folder,odbFile),'w') as f:
+    with open('%s/%s_Force.csv'%(folder,output),'w') as f:
         if dof == 2:
             f.write('Time;X;Y\n')
         if dof == 3:

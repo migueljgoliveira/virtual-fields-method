@@ -1,65 +1,74 @@
-def dim_vars(coord,conn,lvfs):
+import numpy as np
+
+def dim_vars(coord,conn,nt):
     """
     Set dimensional variables.
 
     Parameters
     ----------
-    coord : (nn,dof) , float
+    coord : (nt,(nn,dof)) , float
         Nodes reference coordinates.
-    conn : (ne,npe) , int
+    conn : (nt,(ne,npe)) , int
         Elements connectivity.
-    lvfs : (nvfs,) , int
-        List of user defined virtual fields type. 
+    nt : int
+        Number of tests.
 
     Returns
     -------
-    nn : int
+    nn : (nt,) , int
         Number of nodes.
-    ne : int
+    ne : (nt,) , int
         Number of elements.
-    npe : int
+    npe : (nt,) , int
         Number of nodes per element.
-    dof : int
+    dof : (nt,) , int
         Number of degrees of freedom.
-    ndi : int
+    ndi : (nt,) , int
         Number of normal tensor components.
-    nshr : int
+    nshr : (nt,) , int
         Number of shear tensor components.
-    ntens : int
+    ntens : (nt,) , int
         Number of tensor components.
-    nstatev : int
+    nstatev : (nt,) , int
         Number of internal state variables.
-    nvfs : int
-        Number of virtual fields.
     """
 
-    # Number of nodes 
-    nn = coord.shape[0]
+    # Initialize dim variables
+    nn = np.zeros(nt,dtype=int)
+    ne = np.zeros(nt,dtype=int)
+    npe = np.zeros(nt,dtype=int)
+    dof = np.zeros(nt,dtype=int)
+    ndi = np.zeros(nt,dtype=int)
+    nshr = np.zeros(nt,dtype=int)
+    ntens = np.zeros(nt,dtype=int)
+    nstatev = np.zeros(nt,dtype=int)
 
-    # Number of elements
-    ne = conn.shape[0]
+    for t in range(nt):
 
-    # Number of nodes per element
-    npe = conn.shape[1]
+        # Number of nodes 
+        nn[t] = coord[t].shape[0]
 
-    # Degrees of freedom
-    dof = coord.shape[1]
+        # Number of elements
+        ne[t] = conn[t].shape[0]
 
-    # Number of normal and shear components
-    if dof == 2:
-        ndi = 2
-        nshr = 1
-    elif dof == 3:
-        ndi = 3
-        nshr = 3
+        # Number of nodes per element
+        npe[t] = conn[t].shape[1]
 
-    # Number of tensor components
-    ntens = ndi + nshr
+        # Degrees of freedom
+        dof[t] = coord[t].shape[1]
 
-    # Number of internal state variables
-    nstatev = ntens + 1
+        # Number of normal and shear components
+        if dof[t] == 2:
+            ndi[t] = 2
+            nshr[t] = 1
+        elif dof[t] == 3:
+            ndi[t] = 3
+            nshr[t] = 3
 
-    # Number of user defined virtual fields
-    nvfs = len(lvfs)
+        # Number of tensor components
+        ntens[t] = ndi[t] + nshr[t]
 
-    return nn,ne,npe,dof,ndi,nshr,ntens,nstatev,nvfs
+        # Number of internal state variables
+        nstatev[t] = ntens[t] + 1
+
+    return nn,ne,npe,dof,ndi,nshr,ntens,nstatev

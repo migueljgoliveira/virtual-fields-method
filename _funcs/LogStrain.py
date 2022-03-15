@@ -2,17 +2,19 @@ import numpy as np
 
 import _funcs
 
-def log_strain(coord,displ,rotm,thick,ne,npe,dof,ndi,nshr,ntens,nf):
+def log_strain(coord,displ,conn,rotm,thick,ne,npe,dof,ndi,nshr,ntens,nf):
     """
     Compute the logarithmic strain in local csys by the polar 
       decomposition of the deformation gradient.
 
     Parameters
     ----------
-    coord : (ne,npe,dof) , float
+    coord : (nn,dof) , float
         Nodes reference coordinates.
-    displ : (nf,ne,npe,dof) , float
+    displ : (nf,nn,dof) , float
         Nodes displacements.
+    conn : (ne,npe) , int
+        Elements connectivity.
     rotm : (dof,dof) , float
         Material rotation tensor.
     thick : float
@@ -46,12 +48,12 @@ def log_strain(coord,displ,rotm,thick,ne,npe,dof,ndi,nshr,ntens,nf):
 
     # Derivatives of shape function and jacobian
     if npe == 4:
-        dNdNr,jac,vol = _funcs.el_quad4r(coord,thick)
+        dNdNr,jac,vol = _funcs.el_quad4r(coord[conn],thick)
     elif npe == 8:
-        dNdNr,jac,vol = _funcs.el_hex8r(coord)
+        dNdNr,jac,vol = _funcs.el_hex8r(coord[conn])
 
     # Deformaton gradient
-    dfgrd = _funcs.deformation_gradient(displ,dNdNr,jac,dof)
+    dfgrd = _funcs.deformation_gradient(displ[:,conn],dNdNr,jac,dof)
 
     # Polar decomposition of deformation gradient
     rot,strch = _funcs.polar_decomposition(dfgrd,side='left')

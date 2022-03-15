@@ -1,74 +1,85 @@
-import numpy as np
-
 import _funcs
 
-def VFM(prjname,out,lvfs):
+def VFM(prjnm):
 
     ##################
     # PRE-PROCESSING #
     ##################
 
     # Load settings
-    props,opti,bounds,constr,nprops,nlgeom = _funcs.load_settings(prjname)
+    options,nt = _funcs.load_options(prjnm)
 
     # Create output directory
-    _funcs.create_directory(out)
+    _funcs.create_directory(prjnm,options.fout,options.tests,nt)
 
-    # Load geometry data
-    coord,displ,conn,centroid,force,thick,ori,nf = _funcs.load_data(prjname)
+    # Load project data
+    coord,displ,conn,centr,force,thick,ori,nf = _funcs.load_data(prjnm,
+                                                                 options.tests,
+                                                                 nt)
 
     # Set dimensional variables
-    nn,ne,npe,dof,ndi,nshr,ntens,nstatev,nvfs = _funcs.dim_vars(coord,conn,
-                                                                lvfs)
+    nn,ne,npe,dof,ndi,nshr,ntens,nstatev = _funcs.dim_vars(coord,conn,nt)
 
     # Compute material rotation tensor
-    rotm = _funcs.material_rotation(ori,dof)
+    rotm = [None]*nt
+    for t in range(nt):
+        rotm[t] = _funcs.material_rotation(ori[t],dof[t])
 
     # Compute strain and deformation gradient
-    strain,rot,dfgrd,vol = _funcs.log_strain(coord[conn],displ[:,conn],rotm,
-                                             thick,ne,npe,dof,ndi,nshr,
-                                             ntens,nf)
+    strain,rot,dfgrd,vol = [None]*nt,[None]*nt,[None]*nt,[None]*nt
+    for t in range(nt):
+        strain[t],rot[t],dfgrd[t],vol[t] = _funcs.log_strain(coord[t],displ[t],
+                                                             conn[t],rotm[t],
+                                                             thick[t],ne[t],
+                                                             npe[t],dof[t],
+                                                             ndi[t],nshr[t],
+                                                             ntens[t],nf[t])
 
     # Generate user defined virtual fields
-    vfs = _funcs.user_defined_virtual_fields(coord,centroid,ne,dof,lvfs,nvfs)
+    vfs,nvfs = [None]*nt,[None]*nt
+    for t in range(nt):
+        vfs[t],nvfs[t] = _funcs.user_defined_virtual_fields(coord[t],centr[t],
+                                                            ne[t],dof[t],
+                                                            options.ivfs[t])
 
     ##################
     # IDENTIFICATION #
     ##################
 
-    _funcs.identification(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,
-                          ntens,nstatev,nvfs,nf,props,opti,bounds,constr,
-                          nprops,nlgeom)
-
-    # ivw,evw,res,phi = _funcs.vfm_core(strain,rot,dfgrd,rotm,force,vol,
-    #                                        vfs,props,nprops,ne,dof,ndi,nshr,
-    #                                        ntens,nstatev,nvfs,nf,nlgeom)
+    props = _funcs.identification(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,
+                                  ndi,nshr,ntens,nstatev,nvfs,nf,nt,options)
 
     ###################
     # POST-PROCESSING #
     ###################
 
-    # Compute cauchy stress on corotational material csys in voigt form
-    stress,statev,d33 = _funcs.cauchy_stress(strain,rot,rotm,props,ne,dof,ndi,
-                                             nshr,ntens,nstatev,nf,voigt=1)
+    stress,statev,d33 = [None]*nt,[None]*nt,[None]*nt
+    for t in range(nt):
+
+        # Compute cauchy stress of best solution
+        stress[t],statev[t],d33[t] = _funcs.cauchy_stress(strain[t],rot[t],
+                                                          rotm[t],ne[t],dof[t],
+                                                          ndi[t],nshr[t],
+                                                          ntens[t],nstatev[t],
+                                                          nf[t],props,
+                                                          options.nprops,
+                                                          voigt=1)
 
 
-    # Rotate strain to global csys
-    strain = _funcs.rotate_tensor(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nf,
-                                  dir=1,voigt=1,eng=0)
+        # Rotate strain to global csys
+        strain[t] = _funcs.rotate_tensor(strain[t],rot[t],rotm[t],ne[t],dof[t],
+                                         ndi[t],nshr[t],ntens[t],nf[t],
+                                         dir=1,voigt=1,eng=0)
 
-    # Export model to paraview
-    _funcs.export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,
-                           nf,nvfs,out,folder='output')
+        # Export model to paraview
+        _funcs.export_paraview(coord[t],displ[t],conn[t],strain[t],stress[t],
+                               statev[t],d33[t],vfs[t],dof[t],nvfs[t],nf[t],
+                               options.fout,options.tests[t],nt)
 
     return
 
 if __name__ == '__main__':
 
-    name = 'Double-Notched-2D'
-    output = name
+    prjname = 'Double-Notched-2D'
 
-    # Set type of user defined virtual fields
-    lvfs = np.array([1,3,4])
-
-    VFM(name,output,lvfs)
+    VFM(prjname)

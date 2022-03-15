@@ -1,0 +1,6 @@
+.: Write progress data
+	. variables evolution
+	. cost function evolution (total and per test)
+
+.: Write final data
+	. ivw and evw for each vf and each test

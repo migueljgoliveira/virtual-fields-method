@@ -2,8 +2,8 @@ import numpy as np
 
 import _funcs
 
-def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,props,nprops,ne,dof,ndi,nshr,
-             ntens,nstatev,nvfs,nf,nlgeom):
+def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
+             nvfs,nf,nlgeom,props,nprops):
     """
     VFM Core Function
 
@@ -23,10 +23,6 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,props,nprops,ne,dof,ndi,nshr,
         Elements volume.
     vfs : {(nvfs,ne,dof,dof), (nvfs,nn,dof)} , float
         User defined virtual fields.
-    props : (nprops,) , float
-        Material properties.
-    nprops : int
-        Number of material properties.
     ne : int
         Number of elements.
     dof : int
@@ -45,15 +41,27 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,props,nprops,ne,dof,ndi,nshr,
         Number of increments.
     nlgeom : bool
         Flag for small or large deformation framework (0/1).
+    props : (nprops,) , float
+        Material properties.
+    nprops : int
+        Number of material properties.
 
     Returns
     -------
+    ivw : (nf,nvfs) , float
+        Internal virtual work.
+    evw : (nf,nvfs) , float
+        External virtual work.
+    res : (nf*nvfs,) , float
+        Cost function residuals for time increments and virtual fields.
+    phi : float
+        Cost function.
     """
 
     # Compute internal virtual work
-    ivw = _funcs.internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs['e'],
-                                       props,nprops,ne,dof,ndi,nshr,ntens,
-                                       nstatev,nvfs,nf,nlgeom)
+    ivw = _funcs.internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs['e'],ne,
+                                       dof,ndi,nshr,ntens,nstatev,nvfs,nf,
+                                       nlgeom,props,nprops)
 
     # Compute external virtual work
     evw = _funcs.external_virtual_work(force,vfs['u'])

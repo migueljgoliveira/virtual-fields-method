@@ -3,8 +3,8 @@ import shutil
 import meshio
 import numpy as np
 
-def export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,nf,nvfs,
-                    out,folder='output'):
+def export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,nvfs,nf,
+                    out,test,nt,folder='output'):
     """
     Export experimental finite element mesh to paraview file.
 
@@ -26,6 +26,18 @@ def export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,nf,nvfs,
         Strain in thickness direction.
     vfs : {(nvfs,ne,dof,dof), (nvfs,nn,dof)} , float
         User defined virtual fields.
+    nvfs : int
+        Number of virtual fields.
+    nf : (nt,) , int
+        Number of increments.
+    out : str
+        Name of output folder.
+    test : str
+        Name of test.
+    nt : int
+        Number of tests.
+    folder : str
+        Type of export folder.
     """
 
     # Swap out-of-plane shear components for paraview notation
@@ -41,8 +53,13 @@ def export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,nf,nvfs,
     elif dof == 3:
         cells = [('hexahedron',conn)]
 
+    # Set output folder
+    if nt > 1:
+        outF = f'{os.getcwd()}\\{folder}\\{out}\\{test}\\{test}'
+    else:
+        outF = f'{os.getcwd()}\\{folder}\\{out}\\{out}'
+
     # Output paraview file
-    outF = f'{os.getcwd()}\\{folder}\\{out}\\{out}'
     with meshio.xdmf.TimeSeriesWriter(f'{outF}.xdmf') as w:
 
         w.write_points_cells(points,cells)
@@ -72,6 +89,9 @@ def export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,nf,nvfs,
             w.write_data(f,point_data=pdata,cell_data=cdata)
 
     # Move .h5 file from cwd to output folder
-    shutil.move(f'{out}.h5',f'{outF}.h5')
+    if nt > 1:
+        shutil.move(f'{test}.h5',f'{outF}.h5')
+    else:
+        shutil.move(f'{out}.h5',f'{outF}.h5')
 
     return

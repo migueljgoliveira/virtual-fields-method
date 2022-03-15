@@ -3,8 +3,8 @@ import numpy as np
 import _funcs
 from ummdp_vfm import ummdp_vfm as umat
 
-def cauchy_stress(strain,rot,rotm,props,nprops,ne,dof,ndi,nshr,ntens,
-                  nstatev,nf,voigt):
+def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,props,
+                  nprops,voigt):
     """
     Compute the cauchy stress in local csys using the backward-Euler with an elastic predictor and plastic corrector.
 
@@ -16,10 +16,6 @@ def cauchy_stress(strain,rot,rotm,props,nprops,ne,dof,ndi,nshr,ntens,
         Rotation tensor.
     rotm : (dof,dof) , float
         Material rotation tensor.
-    props : (nprops,) , float
-        Material properties.
-    nprops : int
-        Number of material properties.
     ne : int
         Number of elements.
     dof : int
@@ -34,6 +30,10 @@ def cauchy_stress(strain,rot,rotm,props,nprops,ne,dof,ndi,nshr,ntens,
         Number of internal state variables.
     nf : int
         Number of increments.
+    props : (nprops,) , float
+        Material properties.
+    nprops : int
+        Number of material properties.
     voigt : bool
         Flag for voigt notation (0/1).
 

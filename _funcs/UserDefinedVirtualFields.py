@@ -1,7 +1,7 @@
 import numpy as np
 from numpy import pi,sin,cos,sign
 
-def user_defined_virtual_fields(coord,centroid,ne,dof,lvfs,nvfs):
+def user_defined_virtual_fields(coord,centr,ne,dof,ivfs):
     """
     Generate user defined virtual fields.
 
@@ -9,21 +9,21 @@ def user_defined_virtual_fields(coord,centroid,ne,dof,lvfs,nvfs):
     ----------
     coord : (nn,dof) , float
         Nodes reference coordinates.
-    centroid : (ne,dof) , float
+    centr : (ne,dof) , float
         Elements centroid reference coordinates.
     ne : int
         Number of elements.
     dof : int
         Number of degrees of freedom.
-    lvfs : (nvfs,) , int
+    ivfs : {(nt,nvfs)} , int
         List of user defined virtual fields type. 
-    nvfs : int
-        Number of virtual fields.
 
     Returns
     -------
     vfs : {(nvfs,ne,dof,dof), (nvfs,nn,dof)} , float
         User defined virtual fields.
+    nvfs : int
+        Number of virtual fields.
 
     Notes
     -----
@@ -31,12 +31,15 @@ def user_defined_virtual_fields(coord,centroid,ne,dof,lvfs,nvfs):
         Number of nodes.
     """
 
+    # Number of user defined virtual fields
+    nvfs = len(ivfs['ud'])
+
     # Compute half-width and half-height of geometry
     w,h = abs(np.max(coord,0) - np.min(coord,0))/2
 
     # Create nodes coordinate and elements centroid variables
     xn,yn = coord[:,0],coord[:,1]
-    xe,ye = centroid[:,0],centroid[:,1]
+    xe,ye = centr[:,0],centr[:,1]
 
     # Compute maximum edge boundary coordinates
     xb,yb = np.max(xn),np.max(yn)
@@ -46,7 +49,7 @@ def user_defined_virtual_fields(coord,centroid,ne,dof,lvfs,nvfs):
            'u': np.zeros((nvfs,dof))}
 
     i = 0
-    for ivf in lvfs:
+    for ivf in ivfs['ud']:
 
         # Type 1
         if ivf == 1:
@@ -90,4 +93,4 @@ def user_defined_virtual_fields(coord,centroid,ne,dof,lvfs,nvfs):
 
         i += 1
 
-    return vfs
+    return vfs,nvfs

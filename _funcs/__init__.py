@@ -1,5 +1,5 @@
 # __init__.py
-from .LoadSettings import *
+from .LoadOptions import *
 from .CreateDirectory import *
 from .LoadData import *
 from .MaterialProperties import *
@@ -14,6 +14,7 @@ from .RotateTensor import *
 from .VoigtToTensor import *
 from .TensorToVoigt import *
 from .Identification import *
+from .TransformProperties import *
 from .PropertiesConstraints import *
 from .VFMCore import *
 from .CauchyStress import *
@@ -23,3 +24,4 @@ from .InternalVirtualWork import *
 from .ExternalVirtualWork import *
 from .ExportParaview import *
 from .Strain33 import *
+from .Error import *
