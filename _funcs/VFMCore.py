@@ -3,7 +3,7 @@ import numpy as np
 import _funcs
 
 def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
-             nvfs,nf,nlgeom,props,nprops):
+             nvfs,nf,nprops,props,nlgeom):
     """
     VFM Core Function
 
@@ -39,12 +39,12 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
         Number of virtual fields.
     nf : int
         Number of increments.
-    nlgeom : bool
-        Flag for small or large deformation framework (0/1).
-    props : (nprops,) , float
-        Material properties.
     nprops : int
         Number of material properties.
+    props : (nprops,) , float
+        Material properties.
+    nlgeom : bool
+        Flag for small or large deformation framework (0/1).
 
     Returns
     -------
@@ -61,15 +61,15 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
     # Compute internal virtual work
     ivw = _funcs.internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs['e'],ne,
                                        dof,ndi,nshr,ntens,nstatev,nvfs,nf,
-                                       nlgeom,props,nprops)
+                                       nprops,props,nlgeom)
 
     # Compute external virtual work
     evw = _funcs.external_virtual_work(force,vfs['u'])
 
     # Compute residuals of increments and virtual fields
-    res = np.ravel((ivw - evw)**2)
+    res = np.ravel(ivw - evw,order='F')
 
     # Compute cost function
-    phi = np.sum(res)/(nf*nvfs)
+    phi = 0.5*np.sum(res**2)
 
     return ivw,evw,res,phi

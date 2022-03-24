@@ -12,34 +12,13 @@ class Options:
             List of tests name.
         fout : str
             Name of output folder.
-        nlgeom : bool
-            Flag for small or large deformation framework (0/1).
-        algo : str
-            Name of optimization algorithm.
         ivfs : (nt,{(nvfs)}) , int
             List of selected virtual fields.
-        props : (nprops,) , float
-            List of material properties.
-        nprops : int
-            Number of material properties. 
-        opti : (nprops,) , bool
-            Flags for identification properties.
-        bounds : (nprops,2) , float
-            Boundaries for identification properties.
-        constr : (nprops,2) , float
-            Constraints for identification properties.
         """
 
         self.tests = None
         self.fout = None
-        self.nlgeom = None
-        self.algo = None
         self.ivfs = None
-        self.props = None
-        self.nprops = None
-        self.opti = None
-        self.bounds = None
-        self.constr = None
 
     def load_tests(self,data,ln,prjnm):
         """
@@ -99,13 +78,20 @@ class Options:
             Options file data contents. 
         ln : int
             Line number of nlgeom option in data file.
+
+        Returns
+        -------
+        nlgeom : bool
+            Flag for small or large deformation framework (0/1).
         """
 
-        self.nlgeom = 1
+        nlgeom = 1
         if ln != -1:
-            self.nlgeom = bool(int(data[ln+1]))
+            nlgeom = bool(int(data[ln+1]))
 
-    def load_algo(self,data,ln):
+        return nlgeom
+
+    def load_algorithm(self,data,ln):
         """
         Load name of optimization algorithm.
 
@@ -115,16 +101,23 @@ class Options:
             Options file data contents. 
         ln : int
             Line number of optimization option in data file.
+
+        Returns
+        -------
+        algo : str
+            Name of optimization algorithm.
         """
 
         if ln != -1:
-            self.algo = data[ln+1].lower()
+            algo = data[ln+1].lower()
 
         # Default
         else:
-            self.algo = 'lm'
+            algo = 'lm'
 
-    def load_vfs(self,data,ln,nt):
+        return algo
+
+    def load_virtualfields(self,data,ln,nt):
         """
         Load information on selected virtual fields.
 
@@ -149,7 +142,7 @@ class Options:
         else:
             self.ivfs = {'ud': [[1,3,4]]*self.nt}
 
-    def load_props(self,data,ln):
+    def load_properties(self,data,ln):
         """
         Load material properties
 
@@ -159,33 +152,52 @@ class Options:
             Options file data contents. 
         ln : int
             Line number of properties option in data file.
+
+        Returns
+        -------
+        nprops : int
+            Number of material properties.
+        props : (nprops,) , float
+            List of material properties.
         """
 
-        self.nprops = int(data[ln+1])
+        nprops = int(data[ln+1])
 
-        self.props = np.zeros(self.nprops)
-        for i in range(self.nprops):
-            self.props[i] = float(data[ln+2+i].split(',')[-1])
+        props = np.zeros(nprops)
+        for i in range(nprops):
+            props[i] = float(data[ln+2+i].split(',')[-1])
 
-    def load_opti(self,data,ln):
+        return props,nprops
+
+    def load_variables(self,data,ln,nprops):
         """
-        Load identification properties flags
+        Load identification variables flags.
 
         Parameters
         ----------
         data : (), str
             Options file data contents. 
         ln : int
-            Line number of identification option in data file.
+            Line number of variables option in data file.
+
+        Returns
+        vars : (nprops,) , bool
+            Flags for identification variables.
+        nvars : int
+            Number of identification variables.
         """
 
-        self.opti = np.zeros(self.nprops,dtype=bool)
-        for i in range(self.nprops):
-            self.opti[i] = bool(eval(data[ln+1+i].split(',')[-1]))
+        vars = np.zeros(nprops,dtype=bool)
+        for i in range(nprops):
+            vars[i] = bool(eval(data[ln+1+i].split(',')[-1]))
 
-    def load_bounds(self,data,ln):
+        nvars = np.sum(vars)
+
+        return vars,nvars
+
+    def load_boundaries(self,data,ln,vars,algo,nprops):
         """
-        Load identification properties boundaries.
+        Load identification variables boundaries.
 
         Parameters
         ----------
@@ -193,21 +205,38 @@ class Options:
             Options file data contents. 
         ln : int
             Line number of boundaries option in data file.
+        vars : (nprops,) , bool
+            Flags for identification variables.
+        algo : str
+            Name of optimization algorithm.
+        nprops : int
+            Number of material properties.
+
+        Returns
+        -------
+        bounds : (nprops,2) , float
+            Boundaries for identification variables.
         """
 
-        self.bounds = []
+        bounds = np.zeros((nprops,2)) * np.nan
         if ln != -1:
-            self.bounds = np.zeros((self.nprops,2)) * np.nan
             try:
                 nbound = int(data[ln+1])
                 for i in range(nbound):
                     idp = int(data[ln+2+i].split(',')[0])
-                    self.bounds[idp,0] = float(data[ln+2+i].split(',')[1])
-                    self.bounds[idp,1] = float(data[ln+2+i].split(',')[2])
+                    bounds[idp,0] = float(data[ln+2+i].split(',')[1])
+                    bounds[idp,1] = float(data[ln+2+i].split(',')[2])
             except:
                 pass
 
-    def load_constr(self,data,ln):
+        # Check if identification variables have boundaries
+        if algo == 'de':
+            if np.isnan(bounds[vars]).any():
+                _funcs.error("boundaries are not defined for identification variables.")
+
+        return bounds
+
+    def load_constraints(self,data,ln):
         """
         Load identification properties constraints.
 
@@ -217,9 +246,14 @@ class Options:
             Options file data contents. 
         ln : int
             Line number of constraints option in data file.
+
+        Returns
+        -------
+        constr : (nprops,2) , float
+            Constraints for identification properties.
         """
 
-        self.constr = []
+        constr = []
         if ln != -1:
             try:
                 nconstr = int(data[ln+1])
@@ -227,10 +261,12 @@ class Options:
                 for line in data[ln+2:ln+2+nconstr]:
                     idp = int(line.split(',')[0])
                     expr = line.split(',')[1].replace('[','props[')
-                    self.constr.append([idp,expr])
+                    constr.append([idp,expr])
                     l += 1
             except:
                 pass
+
+        return constr
 
 def load_options(prjnm):
     """
@@ -264,11 +300,15 @@ def load_options(prjnm):
         l += 1
 
     # Get keywords line numbers
-    ltest,lfout,lnlgeom,lalgo,lvfs,lprops,lopti,lbounds,lconstr = [-1]*9
+    lsim,lid,ltest,lfout,lnlgeom,lalgo,lvfs,lprops,lvars,lbounds,lconstr = [-1]*11
     l = 0
     for line in data:
         line = line.lower()
-        if '*tests' in line:
+        if '*simulation' in line:
+            lsim = l
+        elif '*identification' in line:
+            lid = l
+        elif '*tests' in line:
             ltest = l
         elif '*output' in line:
             lfout = l
@@ -280,8 +320,8 @@ def load_options(prjnm):
             lvfs = l
         elif '*properties' in line:
             lprops = l
-        elif '*identification' in line:
-            lopti = l
+        elif '*variables' in line:
+            lvars = l
         elif '*boundaries' in line:
             lbounds = l
         elif '*constraints' in line:
@@ -292,6 +332,16 @@ def load_options(prjnm):
     # Initialize options object
     options = Options()
 
+    # Set type of run
+    if lsim != -1:
+        run = 'simulation'
+    elif lid != -1:
+        run = 'identification'
+    elif (lsim != -1) and (lid != -1):
+        _funcs.error('select only *Simulation or only *Identification option.')
+    else:
+        _funcs.error('select *Simulation or *Identification option.')
+
     # Load number and name of tests
     nt = options.load_tests(data,ltest,prjnm)
 
@@ -299,29 +349,24 @@ def load_options(prjnm):
     options.load_output(data,lfout,prjnm)
 
     # Load flag for small or large (default) deformation framework
-    options.load_nlgeom(data,lnlgeom)
+    nlgeom = options.load_nlgeom(data,lnlgeom)
 
     # Load selected optimization algorithm
-    options.load_algo(data,lalgo)
+    algo = options.load_algorithm(data,lalgo)
 
     # Load selected virtual fields
-    options.load_vfs(data,lvfs,nt)
+    options.load_virtualfields(data,lvfs,nt)
 
     # Load material properties
-    options.load_props(data,lprops)
+    props,nprops = options.load_properties(data,lprops)
 
-    # Load identification properties flags
-    options.load_opti(data,lopti)
+    # Load variables flags
+    vars,nvars = options.load_variables(data,lvars,nprops)
 
     # Load identification properties boundaries
-    options.load_bounds(data,lbounds)
+    bounds = options.load_boundaries(data,lbounds,vars,algo,nprops)
 
     # Load identification properties constraints
-    options.load_constr(data,lconstr)
+    constr = options.load_constraints(data,lconstr)
 
-    # Check if identification properties have boundaries
-    if options.algo == 'de':
-        if np.isnan(options.bounds[options.opti]).any():
-            _funcs.Error("boundaries are not defined for identification properties.")
-
-    return options,nt
+    return run,props,vars,bounds,constr,nlgeom,algo,nprops,nvars,nt,options

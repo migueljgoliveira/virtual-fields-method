@@ -3,8 +3,8 @@ import shutil
 import meshio
 import numpy as np
 
-def export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,nvfs,nf,
-                    out,test,nt,folder='output'):
+def export_paraview(coord,displ,conn,strain,vol,stress,statev,d33,pkstress,vfs,
+                    ne,dof,nvfs,nf,nt,out,test,folder='output'):
     """
     Export experimental finite element mesh to paraview file.
 
@@ -24,18 +24,24 @@ def export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,nvfs,nf,
         Internal state variables in global csys.
     d33 : (nf,ne) , float
         Strain in thickness direction.
+    pkstress : (nf,ne,dof,dof) , float
+        1st piola-kirchhoff stress.
     vfs : {(nvfs,ne,dof,dof), (nvfs,nn,dof)} , float
         User defined virtual fields.
+    ne : int
+        Number of elements.
+    dof : int
+        Number of degrees of freedom.
     nvfs : int
         Number of virtual fields.
     nf : (nt,) , int
         Number of increments.
+    nt : int
+        Number of tests.
     out : str
         Name of output folder.
     test : str
         Name of test.
-    nt : int
-        Number of tests.
     folder : str
         Type of export folder.
     """
@@ -74,10 +80,12 @@ def export_paraview(coord,displ,conn,strain,stress,statev,d33,vfs,dof,nvfs,nf,
                       'S': [stress[f,...]],
                    'PEEQ': [statev[f,...,0]],
                      'PE': [statev[f,...,1:]],
+                     'PK': [pkstress[f,...]],
+                    'VOL': [vol],
                     }
 
             # Add virtual strain fields
-            if (folder == 'output') and (f == 0):
+            if (folder == 'output'):
                 for i in range(nvfs):
                     cdata[f'VF{i+1}'] = [vfs['e'][i,...]]
 

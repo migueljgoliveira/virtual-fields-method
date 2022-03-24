@@ -1,4 +1,4 @@
-def Error(msg):
+def error(msg):
     """
     Print error message and terminate execution.
 

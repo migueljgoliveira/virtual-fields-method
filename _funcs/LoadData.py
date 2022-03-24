@@ -91,7 +91,7 @@ def load_data(prjnm,tests,nt):
 
         # Check if force increments is equal to displacement increments
         if len(force[t]) != nf[t]:
-            _funcs.Error(f'number of force increments is different from displacement increments in test {t+1}.')
+            _funcs.error(f'number of force increments is different from displacement increments in test {t+1}.')
 
         # Load specimen thickness
         filename = f'{filesdir}_Thickness.csv'
@@ -99,7 +99,7 @@ def load_data(prjnm,tests,nt):
 
         # Load material orientation
         filename = f'{filesdir}_Orientation.csv'
-        ori[t] = float(np.loadtxt(filename,skiprows=1,delimiter=';'))
+        ori[t] = 90 - float(np.loadtxt(filename,skiprows=1,delimiter=';'))
 
         # Compute elements centroid
         centr[t] = np.mean(coord[t][conn[t]],1)

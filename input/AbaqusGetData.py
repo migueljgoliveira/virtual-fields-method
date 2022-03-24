@@ -8,9 +8,9 @@ def main():
 
     # input settings
     dof = 2
-    folder = 'Double-Notched'
-    odbFile = folder
-    output = 'Double-Notched-90'
+    folder = 'Double-Notched-vonMises'
+    odbFile = 'Double-Notched-vonMises'
+    output = 'Double-Notched-vonMises'
 
     # nodes per element
     if dof == 2:

@@ -1,74 +1,48 @@
 import numpy as np
 
-def transform_properties(x0,refprops,bounds,algo,dir):
+def transform_properties(x,refvars,bounds):
     """
-    Transform and normalise identification properties.
+    Transform identification variables for levenberg-marquardt algorithm.
 
     Parameters
     ----------
     x : (nid,) , float
-        Updated identification properties.
-    refprops : (nid,) , float
-        Initial identification properties.
+        Updated identification variables.
+    refvars : (nid,) , float
+        Initial identification variables.
     bounds : (nid,2) , float
-        Boundaries for identification properties.
-    algo : str
-        Name of optimization algorithm.
-    dir : int
-        Flag to normalize or de-normalize identification properties (1/-1)
+        Boundaries for identification variables.
 
     Returns
     -------
-    x : (nid,) , float
-        Transformed identification properties.
+    xt : (nid,) , float
+        Transformed identification variables.
 
     Notes
     -----
     nid : int
-        Number of identification properties.
+        Number of identification variables.
     """
 
-    # Normalise identification properties by initial values
-    if algo in ['lm']:
+    # Copy identification variables
+    xt  = x
 
-        if dir == 1:
-            x = x0 / refprops
+    if (len(bounds) > 0):
 
-            return x,bounds
+        # Normalise bounds by initial identification variables
+        nbounds = bounds/refvars[:, None]
 
-        elif dir == -1:
-            x = x0 * refprops
+        # Transform identification variables
+        uprops = 1 + (nbounds[:,1]-1) * (1-np.exp((1-x)/(nbounds[:,1]-1)))
+        lprops = 1 + (nbounds[:,0]-1) * (1-np.exp((1-x)/(nbounds[:,0]-1)))
 
-    # Normalise identification properties by boundaries
-    elif algo in ['de']:
+        # Replace identification variables without boundaries
+        uprops[np.isnan(uprops)] = x[np.isnan(uprops)]
+        lprops[np.isnan(lprops)] = x[np.isnan(lprops)]
 
-        if dir == 1:
-            x = (x0 - bounds[:,0]) / (bounds[:,1] - bounds[:,0])
-            idbounds = np.zeros_like(bounds)
-            idbounds[:,1] = 1
+        # Replace identification variables with boundaries
+        xt[x >= 1] = uprops[x >= 1]
+        xt[x < 1] = lprops[x < 1]
 
-            return x,idbounds
-
-        elif dir == -1:
-            x = x0 * (bounds[:,1] - bounds[:,0]) + bounds[:,0]
-
-    # Transform identification properties
-    if (algo in ['lm']) and (len(bounds) > 0) and (dir == -1):
-
-        # Normalise bounds by initial properties
-        nbounds = bounds/refprops[:, None]
-
-        # Compute transformed properties
-        uprops = 1 + (nbounds[:,1]-1) * (1-np.exp((1-x0)/(nbounds[:,1]-1)))
-        lprops = 1 + (nbounds[:,0]-1) * (1-np.exp((1-x0)/(nbounds[:,0]-1)))
-
-        # Replace properties without boundares
-        uprops[np.isnan(uprops)] = x0[np.isnan(uprops)]
-        lprops[np.isnan(lprops)] = x0[np.isnan(lprops)]
-
-        # De-normalised identification properties
-        x[x0 >= 1] = (uprops * refprops)[x0 >= 1]
-        x[x0 < 1] = (lprops * refprops)[x0 < 1]
-
-    return x
+    return xt
 

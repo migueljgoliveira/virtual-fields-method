@@ -31,7 +31,10 @@ def piola_kirchhoff_stress(stress,d33,dfgrd,dof):
     # Determinant of deformation gradient
     dfgrdDet = ((1 + d33) * np.linalg.det(dfgrd))
 
+    # Transpose of deformation gradient inverse
+    dfgrdInvT = np.transpose(np.linalg.inv(dfgrd),(0,1,3,2))
+
     # 1st piola-kirchhoff stress
-    pkstress = dfgrdDet[...,None,None] * stress @ np.linalg.inv(dfgrd)
+    pkstress = dfgrdDet[...,None,None] * stress @ dfgrdInvT
 
     return pkstress

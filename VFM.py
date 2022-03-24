@@ -6,8 +6,8 @@ def VFM(prjnm):
     # PRE-PROCESSING #
     ##################
 
-    # Load settings
-    options,nt = _funcs.load_options(prjnm)
+    # Load options
+    run,props,vars,bounds,constr,nlgeom,algo,nprops,nvars,nt,options = _funcs.load_options(prjnm)
 
     # Create output directory
     _funcs.create_directory(prjnm,options.fout,options.tests,nt)
@@ -42,18 +42,29 @@ def VFM(prjnm):
                                                             ne[t],dof[t],
                                                             options.ivfs[t])
 
-    ##################
-    # IDENTIFICATION #
-    ##################
+    ##############
+    # PROCESSING #
+    ##############
 
-    props = _funcs.identification(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,
-                                  ndi,nshr,ntens,nstatev,nvfs,nf,nt,options)
+    # Simulate vfm with given material properties
+    if run == 'simulation':
+        res,phi = _funcs.simulation(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,
+                                    ndi,nshr,ntens,nstatev,nvfs,nf,nt,nprops,
+                                    props,nlgeom)
+
+    # Perform identification of material properties
+    elif run == 'identification':
+        props = _funcs.identification(strain,rot,dfgrd,rotm,force,vol,vfs,ne,
+                                      dof,ndi,nshr,ntens,nstatev,nvfs,nf,nt,
+                                      nprops,nvars,props,vars,bounds,constr,
+                                      nlgeom,algo,options.fout)
 
     ###################
     # POST-PROCESSING #
     ###################
 
-    stress,statev,d33 = [None]*nt,[None]*nt,[None]*nt
+
+    stress,statev,d33,pkstress = [None]*nt,[None]*nt,[None]*nt,[None]*nt
     for t in range(nt):
 
         # Compute cauchy stress of best solution
@@ -61,20 +72,23 @@ def VFM(prjnm):
                                                           rotm[t],ne[t],dof[t],
                                                           ndi[t],nshr[t],
                                                           ntens[t],nstatev[t],
-                                                          nf[t],props,
-                                                          options.nprops,
-                                                          voigt=1)
+                                                          nf[t],nprops,props,
+                                                          voigt=0)
 
+        # Compute 1st piola-kirchhoff stress
+        pkstress[t] = _funcs.piola_kirchhoff_stress(stress[t],d33[t],dfgrd[t],
+                                                    dof[t])
 
         # Rotate strain to global csys
         strain[t] = _funcs.rotate_tensor(strain[t],rot[t],rotm[t],ne[t],dof[t],
                                          ndi[t],nshr[t],ntens[t],nf[t],
-                                         dir=1,voigt=1,eng=0)
+                                         dir=1,voigt=0,eng=0)
 
         # Export model to paraview
-        _funcs.export_paraview(coord[t],displ[t],conn[t],strain[t],stress[t],
-                               statev[t],d33[t],vfs[t],dof[t],nvfs[t],nf[t],
-                               options.fout,options.tests[t],nt)
+        _funcs.export_paraview(coord[t],displ[t],conn[t],strain[t],vol[t],
+                               stress[t],statev[t],d33[t],pkstress[t],vfs[t],
+                               ne[t],dof[t],nvfs[t],nf[t],nt,options.fout,
+                               options.tests[t])
 
     return
 

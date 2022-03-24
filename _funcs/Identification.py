@@ -3,15 +3,15 @@ from scipy.optimize import least_squares, differential_evolution
 
 import _funcs
 
-def identication_aux(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,
-                     nshr,ntens,nstatev,nvfs,nf,nt,refprops,bounds,nlgeom,algo,
-                     props,nprops,opti,constr):
+def identication_aux(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,
+                     ntens,nstatev,nvfs,nf,nt,nprops,props,vars,nvars,bounds,
+                     constr,nlgeom,algo,fout,refvars):
     """
     Perform identification of material properties. 
 
     Parameters
     ----------
-    x : (nid,) , float
+    x : (nvars,) , float
         Updated identification properties.
     strain : (nt,(nf,ne,ntens)) , float
         Strain in corotational material csys.
@@ -45,22 +45,28 @@ def identication_aux(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,
         Number of increments.
     nt : int
         Number of tests.
-    refprops : (nid,) , float
-        Initial identification properties.
-    bounds : (nid,2) , float
-        Boundaries for identification properties.
+    nprops : int
+        Number of material properties.
+    props : (nprops,) , float
+        Updated material properties.
+    vars : (nprops,) , bool
+        Flags for identification variables.
+    bounds : (nvars,2) , float
+        Boundaries for identification variables.
+    constr : (nprops,2) , float
+        Constraints for material properties.
+    refvars : (nvars,) , float
+        Initial identification variables.
     nlgeom : bool
         Flag for small or large deformation framework (0/1).
     algo : str
         Name of optimization algorithm.
-    props : (nprops,) , float
-        Updated material properties.
-    nprops : int
-        Number of material properties.
-    opti : (nprops,) , bool
-        Flags for identification properties.
-    constr : (nprops,2) , float
-        Constraints for identification properties.
+    fout : str
+        Name of output folder.
+    bestx : None or (nvars,) , float
+        Current best identification variables.
+    bestphi : None or float
+        Current best cost function.
 
     Returns
     -------
@@ -69,48 +75,58 @@ def identication_aux(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,
 
     Notes
     -----
-    nid : int
-        Number of identification properties.
+    nvars : int
+        Number of identification variables.
     """
 
-    # De-normalise identification properties and update material properties
-    props[opti] = _funcs.transform_properties(x,refprops,bounds,algo,-1)
+    # Declare variables for best solution
+    global bestx,bestphi
+
+    # Transform identification variables to apply boundaries
+    if (algo in ['lm']) and (not np.isnan(bounds).any()):
+        x = _funcs.transform_properties(x,refvars,bounds)
+
+    # De-normalise identification variables and update material properties
+    x = _funcs.normalise_properties(x,refvars,bounds,algo,-1)
+
+    # Update material properties with current solution
+    props[vars] = x
 
     # Apply user-defined properties constraints
     if len(constr) > 0:
         props = _funcs.properties_constraints(props,constr)
 
-    # Virtual fields method core function
-    ivw,evw,res,phi = [None]*nt,[None]*nt,[None]*nt,[None]*nt
-    for t in range(nt):
-        ivw[t],evw[t],res[t],phi[t] = _funcs.vfm_core(strain[t],rot[t],
-                                                      dfgrd[t],rotm[t],
-                                                      force[t],vol[t],vfs[t],
-                                                      ne[t],dof[t],ndi[t],
-                                                      nshr[t],ntens[t],
-                                                      nstatev[t],nvfs[t],nf[t],
-                                                      nlgeom,props,nprops)
+    # Perform vfm simulation with current solution
+    res,phi = _funcs.simulation(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,
+                                nshr,ntens,nstatev,nvfs,nf,nt,nprops,props,
+                                nlgeom)
 
-
-    # Compute total residuals
+    # Concatenates total vector of residuals
     resT = np.concatenate(res)
 
     # Compute total cost function
-    phiT = np.sum(phi)/nt
+    phiT = np.sum(phi)
 
-    print(x,props[opti],phiT)
+    # Save best solution
+    if (bestphi == None) or (phiT < np.sum(bestphi)):
+        bestx = x
+        bestphi = phi
 
-    # Return residuals or scalar depending of algorithm
+    # Write variables and cost function progress to file
+    _funcs.write_progress(x,phi,nvars,nt,fout)
+    _funcs.write_progress(bestx,bestphi,nvars,nt,fout,'Best')
+
+    # Return vector of residuals
     if algo in ['lm']:
         return resT
+
+    # Return scalar cost function
     elif algo in ['de']:
         return phiT
 
-    # result.cost = 0.5*np.sum(result.fun**2)
-    # result.fun --> res
-
 def identification(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,
-                   nstatev,nvfs,nf,nt,options):
+                   nstatev,nvfs,nf,nt,nprops,nvars,props,vars,bounds,constr,
+                   nlgeom,algo,fout):
     """
     Perform identification of material properties. 
 
@@ -148,8 +164,24 @@ def identification(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,
         Number of increments.
     nt : int
         Number of tests.
-    options : object
-        Object with project options.
+    nprops : int
+        Number of material properties.
+    nvars : int
+        Number of identification variables.
+    props : (nprops,) , float
+        List of material properties.
+    vars : (nprops,) , bool
+        Flags for identification variables.
+    bounds : (nvars,2) , float
+        Boundaries for identification variables.
+    constr : (nprops,2) , float
+        Constraints for material properties.
+    nlgeom : bool
+        Flag for small or large deformation framework (0/1).
+    algo : str
+        Name of optimization algorithm.
+    fout : str
+            Name of output folder.
 
     Returns
     -------
@@ -157,26 +189,27 @@ def identification(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,
         Final solution of material properties.
     """
 
-    # Copy identification properties
-    refprops = np.copy(options.props[options.opti])
+    # Initialize variables for best solution
+    global bestx,bestphi
+    bestx,bestphi = None,None
 
-    # Copy boundaries of identification properties
-    try:
-        bounds = options.bounds[options.opti]
-    except:
-        bounds = []
+    # Set identification variables
+    refvars = props[vars]
+
+    # Set boundaries of identification variables
+    bounds = bounds[vars]
 
     # Normalise identification properties
-    x,idbounds = _funcs.transform_properties(refprops,refprops,bounds,
-                                             options.algo,1)
+    x = _funcs.normalise_properties(refvars,refvars,bounds,algo,1)
 
-    # Arguments for identification function
+    # Set arguments for identification function
     args = (strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
-            nvfs,nf,nt,refprops,bounds,options.nlgeom,options.algo,
-            options.props,options.nprops,options.opti,options.constr)
+            nvfs,nf,nt,nprops,props,vars,nvars,bounds,constr,nlgeom,algo,fout,
+            refvars)
 
+    # Select optimization algorithm
     # Levenberg-Marquardt
-    if options.algo == 'lm':
+    if algo == 'lm':
         result = least_squares(identication_aux,
                                args = args,
                                x0 = x,
@@ -188,19 +221,31 @@ def identification(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,
                               )
 
     # Differential Evolution
-    elif options.algo == 'de':
+    elif algo == 'de':
         result = differential_evolution(identication_aux,
                                         args = args,
-                                        bounds = idbounds,
+                                        bounds =  np.tile([0,1],(nvars,1)),
                                         tol = 1e-8, atol = 1e-8,
                                         init = 'latinhypercube',
                                         maxiter = 10000,
                                         )
 
-    # De-normalise identification properties
-    x = _funcs.transform_properties(result.x,refprops,bounds,options.algo,-1)
+    # Get best identification variables
+    xf = result.x
 
-    # Update material properties with best solution
-    options.props[options.opti] = x
+    # Transform best identification variables to apply boundaries
+    if (algo in ['lm']) and (not np.isnan(bounds).any()):
+        xf = _funcs.transform_properties(xf,refvars,bounds)
 
-    return options.props
+    # De-normalise best identification variables
+    xf = _funcs.normalise_properties(xf,refvars,bounds,algo,-1)
+
+    # Update material properties with best identification variables
+    props[vars] = xf
+
+    # Run one simulation with best identification variables
+    res,phi = _funcs.simulation(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,
+                                ndi,nshr,ntens,nstatev,nvfs,nf,nt,nprops,
+                                props,nlgeom)
+
+    return props

@@ -3,7 +3,7 @@ import numpy as np
 import _funcs
 
 def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
-                          nstatev,nvfs,nf,nlgeom,props,nprops):
+                          nstatev,nvfs,nf,nprops,props,nlgeom):
     """
     Compute the internal virtual work.
 
@@ -37,12 +37,12 @@ def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
         Number of virtual fields.
     nf : int
         Number of increments.
-    nlgeom : bool
-        Flag for small or large deformation framework (0/1).
-    props : (nprops,) , float
-        Material properties.
     nprops : int
         Number of material properties.
+    props : (nprops,) , float
+        Material properties.
+    nlgeom : bool
+        Flag for small or large deformation framework (0/1).
 
     Returns
     -------
@@ -52,7 +52,7 @@ def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
 
     # Compute cauchy stress on global csys
     stress,_,d33 = _funcs.cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,
-                                        nstatev,nf,props,nprops,voigt=0)
+                                        nstatev,nf,nprops,props,voigt=0)
 
     # Large deformation framework
     if nlgeom:

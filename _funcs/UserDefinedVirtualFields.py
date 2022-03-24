@@ -74,7 +74,7 @@ def user_defined_virtual_fields(coord,centr,ne,dof,ivfs):
         # Type 3
         if ivf == 3:
             vfs['u'][i,0] = (xb/w) * (abs(yb)-h)/h
-            vfs['u'][i,1] = 0
+            vfs['u'][i,1] = 0.0
 
             vfs['e'][i,:,0,0] = (abs(ye)-h) / (w*h)
             vfs['e'][i,:,1,1] = 0
@@ -90,6 +90,16 @@ def user_defined_virtual_fields(coord,centr,ne,dof,ivfs):
             vfs['e'][i,:,1,1] = -(1/(2*h)) * sin(pi*xe/w) * sin(pi*ye/(2*h))
             vfs['e'][i,:,0,1] = -(1/(2*h)) * sin(pi*xe/w) * sin(pi*ye/(2*h))
             vfs['e'][i,:,1,0] = (1/w) * cos(pi*xe/w) * cos(pi*ye/(2*h))
+
+        # Type 5
+        if ivf == 5:
+            vfs['u'][i,0] = ((xb*(yb**2-yb*h))/(w*h**2))
+            vfs['u'][i,1] = 0
+
+            vfs['e'][i,:,0,0] = (ye**2-ye*h)/(w*ye**2)
+            vfs['e'][i,:,1,1] = 0
+            vfs['e'][i,:,0,1] = (2*(xe*ye-1)/(w*h**2))
+            vfs['e'][i,:,1,0] = 0
 
         i += 1
 

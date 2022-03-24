@@ -13,7 +13,10 @@ from .PolarDecomposition import *
 from .RotateTensor import *
 from .VoigtToTensor import *
 from .TensorToVoigt import *
+from .Simulation import *
 from .Identification import *
+from .WriteProgress import *
+from .NormaliseProperties import *
 from .TransformProperties import *
 from .PropertiesConstraints import *
 from .VFMCore import *

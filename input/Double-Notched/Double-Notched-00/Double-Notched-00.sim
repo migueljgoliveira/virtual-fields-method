@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- COPYRIGHT DASSAULT SYSTEMES 2009 -->
+<manifest>
+    <focusFile fileBinary="Double-Notched-00.simdir\Double-Notched-00.1.SMAFocus"/>
+    <bulkFile bulkid="1" fileBinary="Double-Notched-00.1.SMABulk"/>
+</manifest>

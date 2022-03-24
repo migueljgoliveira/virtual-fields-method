@@ -3,8 +3,8 @@ import numpy as np
 import _funcs
 from ummdp_vfm import ummdp_vfm as umat
 
-def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,props,
-                  nprops,voigt):
+def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,nprops,
+                  props,voigt):
     """
     Compute the cauchy stress in local csys using the backward-Euler with an elastic predictor and plastic corrector.
 
@@ -30,10 +30,10 @@ def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,props,
         Number of internal state variables.
     nf : int
         Number of increments.
-    props : (nprops,) , float
-        Material properties.
     nprops : int
         Number of material properties.
+    props : (nprops,) , float
+        Material properties.
     voigt : bool
         Flag for voigt notation (0/1).
 
@@ -78,7 +78,7 @@ def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,props,
                 if er != 0:
                     raise StopIteration
     except StopIteration as e:
-        print('Error in UMMDp-VFM -> Check log file.')
+        print('Error >> stress calculation failed, check ummdp log file.')
         return
 
     # Compute thickness strain for plane stress problems
