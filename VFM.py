@@ -94,6 +94,6 @@ def VFM(prjnm):
 
 if __name__ == '__main__':
 
-    prjname = 'Double-Notched-2D'
+    prjname = 'Double-Notched-vonMises'
 
     VFM(prjname)
