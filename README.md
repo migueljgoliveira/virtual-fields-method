@@ -39,7 +39,7 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
   - Line 1: Give number of properties.
   - Line 2: Give property number and its initial value. The first property should start at 0. Repeat this data line as often as necessary to define all properties.
 
-- **`*Identification`**: Define properties to be identified. 
+- **`*Variables`**: Define properties to be identified. 
   - Line 1: Give property number and identification flag. Set identification flag to `0` to define a fixed property or to `1` to define an identification property. Repeat this data line as often as necessary to define all properties.
 
 ##### Optional Keywords
