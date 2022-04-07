@@ -1,10 +1,7 @@
-import os
-import numpy as np
-
 import _funcs
 
 def simulation(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,
-               nstatev,nvfs,nf,nt,nprops,props,nlgeom):
+               nstatev,nvfs,nf,nt,nprops,props,nlgeom,symm):
     """
     Simulation
 
@@ -46,6 +43,8 @@ def simulation(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,
         Material properties.
     nlgeom : bool
         Flag for small or large deformation framework (0/1).
+    symm : (nt,(nsymm,)), int
+        List of symmetry conditions.
 
     Returns
     -------
@@ -69,19 +68,6 @@ def simulation(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,
                                                         ndi[t],nshr[t],
                                                         ntens[t],nstatev[t],
                                                         nvfs[t],nf[t],nprops,
-                                                        props,nlgeom)
-
-        # Export reference force
-        # name = 'Double-Notched-2D'
-        # filename = f'input\{name}\{name}_Force.csv'
-        # oldforce = np.loadtxt(filename,skiprows=1,delimiter=';')
-        # oldforce[:,2] = ivw[t][:,0]/2
-        # os.rename(filename,f'input\{name}\{name}_ForceFEM.csv')
-        # with open(filename,'w') as f:
-        #     if dof == 2:
-        #         f.write('Time;X;Y\n')
-        #     if dof == 3: 
-        #         f.write('Time;X;Y;Z\n')
-        #     np.savetxt(f,oldforce,delimiter=';')
+                                                        props,nlgeom,symm[t])
 
     return res,phi

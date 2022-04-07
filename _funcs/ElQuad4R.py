@@ -13,10 +13,10 @@ def el_quad4r(coord,thick):
 
     Returns
     -------
-    dNdNr : (ne,2,4) , float
+    dndnr : (ne,4,2) , float
         Shape function derivatives wrt natural coordinates.
-    jac : (ne,2,2) , float
-        Jacobian matrix.
+    jac : (ne,2,2) or (nf,ne,2,2), float
+        Elements jacobian matrix.
     vol : (ne,) , float
         Element volume.
 
@@ -39,18 +39,20 @@ def el_quad4r(coord,thick):
 
     The shape function derivatives wrt natural coordinates will be equal to
 
-          dNdNr_xi =   xi * (1+eta*eta0)/4
-         dNdNr_eta =  eta *   (1+xi*xi0)/4
+          dndnr_xi =   xi * (1+eta*eta0)/4
+         dndnr_eta =  eta *   (1+xi*xi0)/4
     """
 
     # Shape function derivatives wrt natural coordinates
-    dNdNr = np.array([[-1, 1, 1,-1],
-                      [-1,-1, 1, 1]])/4
+    dndnr = np.array([[-1,-1],
+                      [ 1,-1],
+                      [ 1, 1],
+                      [-1, 1]])/4
 
-    # Jacobian matrix
-    jac = dNdNr @ coord
+    # Elements jacobian matrix
+    jac = np.transpose(coord,(0,2,1)) @ dndnr
 
-    # Element volume
+    # Elements volume in reference configuration
     vol = abs(thick * np.linalg.det(jac) * 4.0)
 
-    return dNdNr,jac,vol
+    return dndnr,jac,vol

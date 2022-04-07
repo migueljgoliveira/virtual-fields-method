@@ -8,9 +8,11 @@ def main():
 
     # input settings
     dof = 2
-    folder = 'Double-Notched-vonMises'
-    odbFile = 'Double-Notched-vonMises'
-    output = 'Double-Notched-vonMises'
+    folder = 'Dogbone'
+    subfolder = folder
+    odbFile = 'Dogbone'
+    output = 'Dogbone'
+    xsym = False
 
     # nodes per element
     if dof == 2:
@@ -21,10 +23,10 @@ def main():
         ntens = 6
 
     # open odb file
-    odb = openOdb('%s/%s.odb'%(folder,odbFile),readOnly=1)
+    odb = openOdb('%s/%s/%s.odb'%(folder,subfolder,odbFile),readOnly=1)
 
-    nset = odb.rootAssembly.nodeSets['ROI']
-    elset = odb.rootAssembly.elementSets['ROI']
+    nset = odb.rootAssembly.nodeSets[' ALL NODES']
+    elset = odb.rootAssembly.elementSets[' ALL ELEMENTS']
 
     # get reference coordinates
     nn = len(nset.nodes[0])
@@ -53,7 +55,7 @@ def main():
         displ[i,:,1:] = auxdispl.bulkDataBlocks[0].data
 
     # get load force
-    lset = odb.rootAssembly.nodeSets['TOP_EDGE']
+    lset = odb.rootAssembly.nodeSets['LOAD']
     force = np.zeros((nf,dof+1))
     for i in range(nf):
         fieldOut = odb.steps['Step-1'].frames[i].fieldOutputs
@@ -75,35 +77,45 @@ def main():
     coord[:,0] = nid
     displ[:,:,0] = nid
 
-    with open('%s/%s_Elements.csv'%(folder,output),'w') as f:
-        if npe == 4:
-            f.write('Element;Node-1;Node-2;Node-3;Node-4\n')
-        if npe == 8:
-            f.write('Element;Node-1;Node-2;Node-3;Node-4;Node-5;Node-6;Node-7;Node-8\n')
-        np.savetxt(f,newconn,fmt='%d',delimiter=';')
+    # with open('%s/%s_Elements.csv'%(folder,output),'w') as f:
+    #     if npe == 4:
+    #         f.write('Element;Node-1;Node-2;Node-3;Node-4\n')
+    #     if npe == 8:
+    #         f.write('Element;Node-1;Node-2;Node-3;Node-4;Node-5;Node-6;Node-7;Node-8\n')
+    #     np.savetxt(f,newconn,fmt='%d',delimiter=';')
 
-    with open('%s/%s_Nodes.csv'%(folder,output),'w') as f:
-        if dof == 2:
-            f.write('Node;X;Y\n')
-        if dof == 3:
-            f.write('Node;X;Y;Z\n')
-        np.savetxt(f,coord,fmt='%.12f',delimiter=';')
+    # with open('%s/%s_Nodes.csv'%(folder,output),'w') as f:
+    #     if dof == 2:
+    #         f.write('Node;X;Y\n')
+    #     if dof == 3:
+    #         f.write('Node;X;Y;Z\n')
+    #     np.savetxt(f,coord,fmt='%.12f',delimiter=';')
 
-    for i in range(nf):
-        with open('%s/%s_U_%d.csv'%(folder,output,i),'w') as f:
-            if dof == 2:
-                f.write('Node;U;V\n')
-            if dof == 3:
-                f.write('Node;U;V;W\n')
-            np.savetxt(f,displ[i,...],fmt='%.12f',delimiter=';')
+    # for i in range(nf):
+    #     with open('%s/%s_U_%d.csv'%(folder,output,i),'w') as f:
+    #         if dof == 2:
+    #             f.write('Node;U;V\n')
+    #         if dof == 3:
+    #             f.write('Node;U;V;W\n')
+    #         np.savetxt(f,displ[i,...],fmt='%.12f',delimiter=';')
 
-    with open('%s/%s_Force.csv'%(folder,output),'w') as f:
-        if dof == 2:
-            f.write('Time;X;Y\n')
-        if dof == 3:
-            f.write('Time;X;Y;Z\n')
-        np.savetxt(f,force,fmt='%.12f',delimiter=';')
+    # with open('%s/%s_Force.csv'%(folder,output),'w') as f:
+    #     if dof == 2:
+    #         f.write('Time;X;Y\n')
+    #     if dof == 3:
+    #         f.write('Time;X;Y;Z\n')
 
+    #     if xsym:
+    #         np.savetxt(f,force*2,fmt='%.12f',delimiter=';')
+    #     else:
+    #         np.savetxt(f,force,fmt='%.12f',delimiter=';')
+
+
+    with open('%s/%s/VFM_Data_NL_LStrain.txt'%(folder,output),'a') as f:
+        for i in range(1,nf):
+            for n in range(1,nn+1):
+                print(i,n,coord[n-1,1],coord[n-1,2],displ[i,n-1,1],displ[i,n-1,2])
+                f.write('%d %d %.12f %.12f %.12f %.12f\n'%(i,n,coord[n-1,1],coord[n-1,2],displ[i,n-1,1],displ[i,n-1,2]))
     return
 
 if __name__ == "__main__":

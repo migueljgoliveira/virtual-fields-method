@@ -3,7 +3,7 @@ import numpy as np
 import _funcs
 
 def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
-                          nstatev,nvfs,nf,nprops,props,nlgeom):
+                          nstatev,nvfs,nf,nprops,props,nlgeom,symm):
     """
     Compute the internal virtual work.
 
@@ -43,6 +43,8 @@ def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
         Material properties.
     nlgeom : bool
         Flag for small or large deformation framework (0/1).
+    symm : (nsymm,), int
+        List of symmetry conditions.
 
     Returns
     -------
@@ -51,14 +53,14 @@ def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
     """
 
     # Compute cauchy stress on global csys
-    stress,_,d33 = _funcs.cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,
-                                        nstatev,nf,nprops,props,voigt=0)
+    stress,_,de33 = _funcs.cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,
+                                         nstatev,nf,nprops,props,voigt=0)
 
     # Large deformation framework
     if nlgeom:
 
         # Compute 1st piola-kirchhoff stress
-        pkstress = _funcs.piola_kirchhoff_stress(stress,d33,dfgrd,dof)
+        pkstress = _funcs.piola_kirchhoff_stress(stress,de33,dfgrd)
 
         # Compute internal virtual work
         ivw = pkstress[:,None] * vfs[None] * vol[None,None,:,None,None]
@@ -80,5 +82,20 @@ def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
 
         # Sum internal virtual work along ne and ntens
         ivw = np.nansum(ivw,(2,3))
+
+    # Apply symmetry conditions
+    # if symm is not None:
+
+    #     # Symmetry condition in x-direction
+    #     if (0 in symm) and (1 not in symm):
+    #         ivw = ivw * 2
+
+    #     # Symmetry condition in y-direction
+    #     elif (0 not in symm) and (1 in symm):
+    #         ivw = ivw * 2
+
+    #     # Symmetry condition in x- and y-directions
+    #     elif (0 in symm) and (1 in symm):
+    #         ivw = ivw * 4
 
     return ivw

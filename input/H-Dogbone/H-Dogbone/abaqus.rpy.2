@@ -1,0 +1,150 @@
+# -*- coding: mbcs -*-
+#
+# Abaqus/Viewer Release 2019 replay file
+# Internal Version: 2018_09_24-20.41.51 157541
+# Run by Miguel on Wed Mar 30 16:00:09 2022
+#
+
+# from driverUtils import executeOnCaeGraphicsStartup
+# executeOnCaeGraphicsStartup()
+#: Executing "onCaeGraphicsStartup()" in the site directory ...
+from abaqus import *
+from abaqusConstants import *
+session.Viewport(name='Viewport: 1', origin=(0.0, 0.0), width=126.260406494141, 
+    height=168.555557250977)
+session.viewports['Viewport: 1'].makeCurrent()
+session.viewports['Viewport: 1'].maximize()
+from viewerModules import *
+from driverUtils import executeOnCaeStartup
+executeOnCaeStartup()
+o2 = session.openOdb(name='H-Dogbone.odb')
+#: Model: C:/Users/Miguel/Documents/GitHub/virtual-fields-method/input/H-Dogbone/H-Dogbone/H-Dogbone.odb
+#: Number of Assemblies:         1
+#: Number of Assembly instances: 0
+#: Number of Part instances:     1
+#: Number of Meshes:             1
+#: Number of Element Sets:       5
+#: Number of Node Sets:          6
+#: Number of Steps:              1
+session.viewports['Viewport: 1'].setValues(displayedObject=o2)
+session.viewports['Viewport: 1'].makeCurrent()
+session.viewports['Viewport: 1'].odbDisplay.display.setValues(plotState=(
+    CONTOURS_ON_DEF, ))
+session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+    variableLabel='U', outputPosition=NODAL, refinement=(INVARIANT, 
+    'Magnitude'), )
+session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+    variableLabel='U', outputPosition=NODAL, refinement=(COMPONENT, 'U2'), )
+session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+    variableLabel='SDV1', outputPosition=INTEGRATION_POINT, )
+session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+    variableLabel='S', outputPosition=INTEGRATION_POINT, refinement=(INVARIANT, 
+    'Mises'), )
+session.viewports['Viewport: 1'].odbDisplay.basicOptions.setValues(
+    mirrorAboutXyPlane=True, mirrorAboutXzPlane=True)
+session.viewports['Viewport: 1'].odbDisplay.basicOptions.setValues(
+    mirrorAboutXzPlane=False, mirrorAboutYzPlane=True)
+session.viewports['Viewport: 1'].odbDisplay.basicOptions.setValues(
+    mirrorAboutXyPlane=False, mirrorAboutXzPlane=True)
+session.viewports['Viewport: 1'].view.setValues(nearPlane=87.1191, 
+    farPlane=229.109, width=135.864, height=69.4031, viewOffsetX=9.02119, 
+    viewOffsetY=-2.99545)
+session.viewports['Viewport: 1'].view.setValues(session.views['Iso'])
+session.viewports['Viewport: 1'].view.setValues(session.views['Front'])
+o1 = session.openOdb(
+    name='C:/Users/Miguel/Documents/GitHub/virtual-fields-method/input/H-Dogbone-Full/H-Dogbone-Full/H-Dogbone-Full.odb')
+session.viewports['Viewport: 1'].setValues(displayedObject=o1)
+#: Model: C:/Users/Miguel/Documents/GitHub/virtual-fields-method/input/H-Dogbone-Full/H-Dogbone-Full/H-Dogbone-Full.odb
+#: Number of Assemblies:         1
+#: Number of Assembly instances: 0
+#: Number of Part instances:     1
+#: Number of Meshes:             1
+#: Number of Element Sets:       4
+#: Number of Node Sets:          5
+#: Number of Steps:              1
+session.viewports['Viewport: 1'].restore()
+session.viewports['Viewport: 1'].setValues(origin=(0.0, -49.3333282470703), 
+    width=426.540588378906, height=217.888885498047)
+session.Viewport(name='Viewport: 2', origin=(6.58749961853027, 
+    -49.3333358764648), width=372.193725585938, height=211.311111450195)
+session.viewports['Viewport: 2'].makeCurrent()
+session.viewports['Viewport: 1'].setValues(width=213.270294189453)
+session.viewports['Viewport: 2'].setValues(origin=(213.270294189453, 
+    -49.3333282470703), width=213.270294189453, height=217.888885498047)
+session.viewports['Viewport: 1'].makeCurrent()
+odb = session.odbs['C:/Users/Miguel/Documents/GitHub/virtual-fields-method/input/H-Dogbone/H-Dogbone/H-Dogbone.odb']
+session.viewports['Viewport: 1'].setValues(displayedObject=odb)
+session.viewports['Viewport: 2'].makeCurrent()
+session.viewports['Viewport: 2'].odbDisplay.display.setValues(plotState=(
+    CONTOURS_ON_DEF, ))
+session.viewports['Viewport: 2'].view.setValues(nearPlane=239.399, 
+    farPlane=393.056, width=71.2487, height=70.8653, viewOffsetX=-0.0505203, 
+    viewOffsetY=-0.519553)
+session.viewports['Viewport: 2'].odbDisplay.display.setValues(plotState=(
+    UNDEFORMED, ))
+session.viewports['Viewport: 1'].makeCurrent()
+session.viewports['Viewport: 2'].makeCurrent()
+session.viewports['Viewport: 2'].odbDisplay.basicOptions.setValues(
+    mirrorAboutXzPlane=False, mirrorAboutYzPlane=False)
+session.viewports['Viewport: 2'].view.setValues(session.views['Front'])
+session.viewports['Viewport: 1'].makeCurrent()
+session.viewports['Viewport: 1'].view.setValues(session.views['Front'])
+session.viewports['Viewport: 1'].view.fitView()
+session.viewports['Viewport: 2'].makeCurrent()
+session.viewports['Viewport: 2'].view.fitView()
+session.viewports['Viewport: 2'].odbDisplay.display.setValues(plotState=(
+    CONTOURS_ON_DEF, ))
+session.viewports['Viewport: 1'].makeCurrent()
+session.viewports['Viewport: 1'].odbDisplay.display.setValues(plotState=(
+    CONTOURS_ON_DEF, ))
+session.viewports['Viewport: 1'].view.fitView()
+session.viewports['Viewport: 2'].makeCurrent()
+session.viewports['Viewport: 2'].view.fitView()
+session.viewports['Viewport: 2'].odbDisplay.setPrimaryVariable(
+    variableLabel='LE', outputPosition=INTEGRATION_POINT, refinement=(
+    INVARIANT, 'Max. In-Plane Principal'), )
+session.viewports['Viewport: 2'].odbDisplay.setPrimaryVariable(
+    variableLabel='U', outputPosition=NODAL, refinement=(INVARIANT, 
+    'Magnitude'), )
+session.viewports['Viewport: 1'].makeCurrent()
+session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+    variableLabel='U', outputPosition=NODAL, refinement=(INVARIANT, 
+    'Magnitude'), )
+session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+    variableLabel='U', outputPosition=NODAL, refinement=(COMPONENT, 'U2'), )
+session.viewports['Viewport: 2'].makeCurrent()
+session.viewports['Viewport: 2'].odbDisplay.setPrimaryVariable(
+    variableLabel='U', outputPosition=NODAL, refinement=(COMPONENT, 'U2'), )
+session.viewports['Viewport: 2'].odbDisplay.setPrimaryVariable(
+    variableLabel='S', outputPosition=INTEGRATION_POINT, refinement=(INVARIANT, 
+    'Mises'), )
+session.viewports['Viewport: 2'].odbDisplay.setPrimaryVariable(
+    variableLabel='S', outputPosition=INTEGRATION_POINT, refinement=(COMPONENT, 
+    'S11'), )
+session.viewports['Viewport: 1'].makeCurrent()
+session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+    variableLabel='S', outputPosition=INTEGRATION_POINT, refinement=(INVARIANT, 
+    'Mises'), )
+session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+    variableLabel='S', outputPosition=INTEGRATION_POINT, refinement=(COMPONENT, 
+    'S11'), )
+session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+    variableLabel='S', outputPosition=INTEGRATION_POINT, refinement=(COMPONENT, 
+    'S22'), )
+session.viewports['Viewport: 2'].setValues(height=217.340744018555)
+session.viewports['Viewport: 2'].makeCurrent()
+session.viewports['Viewport: 2'].odbDisplay.setPrimaryVariable(
+    variableLabel='S', outputPosition=INTEGRATION_POINT, refinement=(COMPONENT, 
+    'S22'), )
+session.viewports['Viewport: 2'].view.setValues(nearPlane=259.771, 
+    farPlane=413.466, width=101.555, height=100.744, viewOffsetX=0.592819, 
+    viewOffsetY=1.12814)
+session.viewports['Viewport: 2'].view.fitView()
+session.viewports['Viewport: 2'].odbDisplay.basicOptions.setValues(
+    computeOrder=EXTRAPOLATE_AVERAGE_COMPUTE)
+session.viewports['Viewport: 2'].odbDisplay.basicOptions.setValues(
+    computeOrder=EXTRAPOLATE_COMPUTE_AVERAGE, averagingThreshold=0)
+session.viewports['Viewport: 2'].view.setValues(nearPlane=267.042, 
+    farPlane=406.195, width=52.4267, height=52.0081, viewOffsetX=-1.29295, 
+    viewOffsetY=9.07309)
+session.viewports['Viewport: 2'].view.fitView()

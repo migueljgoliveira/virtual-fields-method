@@ -3,7 +3,7 @@ import numpy as np
 
 import _funcs
 
-def load_data(prjnm,tests,nt):
+def load_data(prjnm,tests,symm,nt):
     """
     Load coordinates, connectivity, and displacements.
 
@@ -12,7 +12,9 @@ def load_data(prjnm,tests,nt):
     prjname : str
         Name of current project.
     tests : object
-        OList of tests name.
+        List of tests name.
+    symm : (nt,(nsymm,)), int
+        List of symmetry conditions.
     nt : int
         Number of tests.
 
@@ -55,12 +57,8 @@ def load_data(prjnm,tests,nt):
         tnm = tests[t]
 
         # Set test directory
-        if nt == 1:
-            basedir = f'{dir}'
-            filesdir = f'{dir}\{tnm}'
-        else:
-            basedir = f'{dir}\{tnm}'
-            filesdir = f'{dir}\{tnm}\{tnm}'
+        basedir = f'{dir}\{tnm}'
+        filesdir = f'{dir}\{tnm}\{tnm}'
 
         # Get number of increments
         files = os.listdir(basedir)
@@ -74,6 +72,28 @@ def load_data(prjnm,tests,nt):
         # Load nodal coordinates
         filename = f'{filesdir}_Nodes.csv'
         coord[t] = np.loadtxt(filename,skiprows=1,delimiter=';')[:,1:]
+
+        # Translate xyz origin to center of specimen
+        lmin = np.nanmin(coord[t],0)
+        lmax = np.nanmax(coord[t],0)
+
+        # No symmetries
+        # if symm[t] is None:
+        #     coord[t] = coord[t] - (lmin + lmax)/2
+        # else:
+        #     # Symmetry condition in x-direction
+        #     if (0 in symm[t]) and (1 not in symm[t]):
+        #         coord[t,0] = coord[t,0] - lmin[0]
+        #         coord[t,1] = coord[t,1] - (lmin[1] + lmax[1])/2
+
+        #     # Symmetry condition in y-direction
+        #     elif (0 not in symm[t]) and (1 in symm[t]):
+        #         coord[t,0] = coord[t,0] - (lmin[0] + lmax[0])/2
+        #         coord[t,1] = coord[t,1] - lmin[1]
+
+        #     # Symmetry condition in x- and y-directions
+        #     elif (0 in symm[t]) and (1 in symm[t]):
+        #         coord[t] = coord[t] - lmin
 
         # Load elements connectivity
         filename = f'{filesdir}_Elements.csv'

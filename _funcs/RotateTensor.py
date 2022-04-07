@@ -40,7 +40,7 @@ def rotate_tensor(array,rot,rotm,ne,dof,ndi,nshr,ntens,nf,dir,voigt=1,eng=0):
 
     Notes
     -----
-    
+
     """
 
     # Convert voigt to tensor form if necessary
@@ -55,7 +55,7 @@ def rotate_tensor(array,rot,rotm,ne,dof,ndi,nshr,ntens,nf,dir,voigt=1,eng=0):
     elif dir == 1:
         arrayR = (rotm @ rot) @ array @ np.transpose(rot @ rotm,(0,1,3,2))
 
-    # Convert to voigt notation if requestedw
+    # Convert to voigt notation if requested
     if voigt:
         arrayR = _funcs.tensor_to_voigt(arrayR,ne,ndi,ntens,nf,eng)
 

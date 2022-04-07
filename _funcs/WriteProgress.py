@@ -1,11 +1,13 @@
 import os
 import numpy as np
 
-def write_progress(x,phi,nvars,nt,fout,best=''):
+def write_progress(it,x,phi,nvars,nt,fout,best=''):
 
     """
     Parameters
     ----------
+    it : int
+        Iteration number.
     x : (nvars,) , float
         Current or best identification variables.
     phi : (nt,) , float
@@ -24,25 +26,25 @@ def write_progress(x,phi,nvars,nt,fout,best=''):
 
     # Generate formmatter
     if nt > 1:
-        fmt = ['%22.8f']*(nvars+1+nt)
+        fmt = ['%.12e']*(nvars+1+nt)
     else:
-        fmt = ['%22.8f']*(nvars+1)
-    fmt.insert(0,'%10d')
+        fmt = ['%.12e']*(nvars+1)
+    fmt.insert(0,'%d')
 
     # If first evaluation create file
     if not os.path.exists(fname):
 
         # Generate header
-        head = f'{"":<6}eval;{"":<19}phi'
+        head = f'eval;phi'
 
         if nt > 1:
             for i in range(nt):
-                head = head + f';{"":<18}phi{i+1}'
+                head = head + f';phi{i+1}'
 
         if len(x) > 9:
-            headx = [f'{"":<19}x{i+1}' for i in range(nvars)]
+            headx = [f'x{i+1}' for i in range(nvars)]
         else:
-            headx = [f'{"":<20}x{i+1}' for i in range(nvars)]
+            headx = [f'x{i+1}' for i in range(nvars)]
 
         head = f'{head};{";".join(headx)}'
 
@@ -50,7 +52,7 @@ def write_progress(x,phi,nvars,nt,fout,best=''):
         lout = np.insert(x,0,phi)
 
         # Insert evaluation number
-        lout = np.insert(lout,0,1)
+        lout = np.insert(lout,0,it)
 
         # Write header and first evaluation result
         np.savetxt(fname,[lout],header=head,fmt=fmt,delimiter=';',comments='')
@@ -58,14 +60,11 @@ def write_progress(x,phi,nvars,nt,fout,best=''):
     # Append subsequent evaluations
     else:
 
-        # Load previous evalution number
-        fe = np.loadtxt(fname,skiprows=1,ndmin=1,usecols=0,delimiter=';')[-1]
-
         # Insert cost function
         lout = np.insert(x,0,phi)
 
         # Insert evaluation number
-        lout = np.insert(lout,0,fe+1)
+        lout = np.insert(lout,0,it)
 
         # Append evaluation result
         with open(fname,'a') as f:

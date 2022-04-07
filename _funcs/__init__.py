@@ -1,4 +1,5 @@
 # __init__.py
+from .ClearScreen import *
 from .LoadOptions import *
 from .CreateDirectory import *
 from .LoadData import *
@@ -16,6 +17,7 @@ from .TensorToVoigt import *
 from .Simulation import *
 from .Identification import *
 from .WriteProgress import *
+from .PrintProgress import *
 from .NormaliseProperties import *
 from .TransformProperties import *
 from .PropertiesConstraints import *

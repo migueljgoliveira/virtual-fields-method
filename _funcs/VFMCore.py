@@ -3,7 +3,7 @@ import numpy as np
 import _funcs
 
 def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
-             nvfs,nf,nprops,props,nlgeom):
+             nvfs,nf,nprops,props,nlgeom,symm):
     """
     VFM Core Function
 
@@ -45,6 +45,8 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
         Material properties.
     nlgeom : bool
         Flag for small or large deformation framework (0/1).
+    symm : (nsymm,), int
+        List of symmetry conditions.
 
     Returns
     -------
@@ -61,7 +63,7 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
     # Compute internal virtual work
     ivw = _funcs.internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs['e'],ne,
                                        dof,ndi,nshr,ntens,nstatev,nvfs,nf,
-                                       nprops,props,nlgeom)
+                                       nprops,props,nlgeom,symm)
 
     # Compute external virtual work
     evw = _funcs.external_virtual_work(force,vfs['u'])
@@ -70,6 +72,6 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
     res = np.ravel(ivw - evw,order='F')
 
     # Compute cost function
-    phi = 0.5*np.sum(res**2)
+    phi = np.sum(res**2)/(nf*nvfs)
 
     return ivw,evw,res,phi

@@ -1,6 +1,6 @@
 import numpy as np
 
-def deformation_gradient(displ,dNdNr,jac,dof):
+def deformation_gradient(displ,dndnr,jac,dof):
     """ 
     Compute the deformation gradient.
 
@@ -8,9 +8,9 @@ def deformation_gradient(displ,dNdNr,jac,dof):
     ----------
     displ : (nf,ne,npe,dof) , float
         Nodes displacements.
-    dNdNr : (dof,npe) , float
+    dndnr : (npe,dof) , float
         Shape function derivatives wrt natural  coordinates.
-    jac : (ne,dof,dof) , float
+    jac : (ne,dof,dof) or (nf,ne,dof,dof), float
         Jacobian matrix.
     dof : int
         Number of degrees of freedom.
@@ -31,10 +31,12 @@ def deformation_gradient(displ,dNdNr,jac,dof):
     """
 
     # Derivatives of shape functions wrt. cartesian coordinates
-    dNdX = np.linalg.inv(jac) @ dNdNr
+    dndx = dndnr @ np.linalg.inv(jac)
+
+    # Derivatives of displacement wrt. reference coordinates
+    dudx = np.transpose(displ,(0,1,3,2)) @ dndx
 
     # Deformation gradient
-    dUdX = dNdX @ displ
-    dfgrd = np.identity(dof) + dUdX
+    dfgrd = np.identity(dof) + dudx
 
     return dfgrd

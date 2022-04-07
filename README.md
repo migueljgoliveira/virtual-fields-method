@@ -61,11 +61,9 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
   - Line 1: `LM` (Levenberg-Marquardt) or `DE` (Differential Evolution).
   - If this keyword is omitted `LM` is used.
 
-
 - **`*Boundaries`** : Define identification properties boundaries.
   - Line 1: Give number of identification properties with boundaries.
   - Line 2: Give property number, lower and upper boundaries. Repeat this data line as often as necessary to define all identification properties with boundaries.
-
 
 - **`*Constraints`** : Define constraints between properties.
   - Line 1: Give number of properties with constraints.

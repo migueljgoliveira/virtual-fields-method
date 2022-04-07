@@ -48,14 +48,14 @@ def log_strain(coord,displ,conn,rotm,thick,ne,npe,dof,ndi,nshr,ntens,nf):
 
     # Derivatives of shape function and jacobian
     if npe == 4:
-        dNdNr,jac,vol = _funcs.el_quad4r(coord[conn],thick)
+        dndnr,jac,vol = _funcs.el_quad4r(coord[conn],thick)
     elif npe == 8:
-        dNdNr,jac,vol = _funcs.el_hex8r(coord[conn])
+        dndnr,jac,vol = _funcs.el_hex8r(coord[conn])
 
     # Deformaton gradient
-    dfgrd = _funcs.deformation_gradient(displ[:,conn],dNdNr,jac,dof)
+    dfgrd = _funcs.deformation_gradient(displ[:,conn],dndnr,jac,dof)
 
-    # Polar decomposition of deformation gradient
+    # Polar decomposition of deformation gradient to right stretch tensor
     rot,strch = _funcs.polar_decomposition(dfgrd,side='left')
 
     # Logarithmic strain in global csys

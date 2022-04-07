@@ -11,10 +11,10 @@ def el_hex8r(coord):
 
     Returns
     -------
-    dNdNr : (ne,3,8) , float
+    dndnr : (ne,3,8) , float
         Shape function derivatives wrt natural coordinates.
-    jac : (ne,3,3) , float
-        Jacobian matrix.
+    jac : (ne,3,3) or (nf,ne,3,3), float
+        Elements jacobian matrix.
     vol : (ne,) , float
         Element volume.
 
@@ -46,14 +46,19 @@ def el_hex8r(coord):
     """
 
     # Shape function derivatives wrt natural coordinates
-    dNdNr = np.array([[-1, 1, 1,-1,-1, 1, 1,-1],
-                      [-1,-1,-1,-1, 1, 1, 1, 1],
-                      [ 1, 1,-1,-1, 1, 1,-1,-1]])/8
+    dndnr = np.array([[-1,-1, 1],
+                      [ 1,-1, 1],
+                      [ 1,-1,-1],
+                      [-1,-1,-1],
+                      [-1, 1, 1],
+                      [ 1, 1, 1],
+                      [ 1, 1,-1],
+                      [-1, 1,-1],])/8
 
-    # Jacobian matrix
-    jac = dNdNr @ coord
+    # Elements jacobian matrix
+    jac = np.transpose(coord,(0,2,1)) @ dndnr
 
     # Element volume
-    vol = abs(np.linalg.det(jac)*8.0)
+    vol = abs(np.linalg.det(jac) * 8.0)
 
-    return dNdNr,jac,vol
+    return dndnr,jac,vol
