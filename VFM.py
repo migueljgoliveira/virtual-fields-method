@@ -21,11 +21,13 @@ def VFM(prjnm):
 
     # Compute material rotation tensor
     rotm = [None]*nt
+
     for t in range(nt):
         rotm[t] = _funcs.material_rotation(ori[t],dof[t])
 
     # Compute strain and deformation gradient
     strain,rot,dfgrd,vol = [None]*nt,[None]*nt,[None]*nt,[None]*nt
+
     for t in range(nt):
         strain[t],rot[t],dfgrd[t],vol[t] = _funcs.log_strain(coord[t],displ[t],
                                                              conn[t],rotm[t],
@@ -36,6 +38,7 @@ def VFM(prjnm):
 
     # Generate user defined virtual fields
     vfs,nvfs = [None]*nt,[None]*nt
+
     for t in range(nt):
         vfs[t],nvfs[t] = _funcs.user_defined_virtual_fields(coord[t],centr[t],
                                                             ne[t],dof[t],
@@ -58,6 +61,7 @@ def VFM(prjnm):
 
     # Perform identification of material properties
     elif run == 'identification':
+
         props = _funcs.identification(strain,rot,dfgrd,rotm,force,vol,vfs,ne,
                                       dof,ndi,nshr,ntens,nstatev,nvfs,nf,nt,
                                       nprops,nvars,props,vars,bounds,constr,
@@ -68,6 +72,7 @@ def VFM(prjnm):
     ###################
 
     stress,statev,de33,pkstress = [None]*nt,[None]*nt,[None]*nt,[None]*nt
+
     for t in range(nt):
 
         # Compute cauchy stress of best solution
@@ -100,6 +105,6 @@ if __name__ == '__main__':
     _funcs.clear_screen()
 
     # Name of project
-    prjname = 'Butterfly-SEM'
+    prjname = 'Butterfly-Experimental'
 
     VFM(prjname)

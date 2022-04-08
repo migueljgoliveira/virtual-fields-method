@@ -72,6 +72,6 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
     res = np.ravel(ivw - evw,order='F')
 
     # Compute cost function
-    phi = np.sum(res**2)/(nf*nvfs)
+    phi = np.sum(res**2)
 
     return ivw,evw,res,phi
