@@ -1,10 +1,7 @@
-import numpy as np
-
 import _funcs
-from ummdp_vfm import ummdp_vfm as ummdp
 
 def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,nprops,
-                  props,voigt):
+                  props,fout,voigt=0):
     """
     Compute the cauchy stress in local csys using the backward-Euler with an elastic predictor and plastic corrector.
 
@@ -34,6 +31,8 @@ def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,nprops,
         Number of material properties.
     props : (nprops,) , float
         Material properties.
+    fout : str
+        Name of output folder.
     voigt : bool
         Flag for voigt notation (0/1).
 
@@ -47,41 +46,9 @@ def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,nprops,
         Strain in thickness direction.
     """
 
-    # Stress integration variables
-    stress = np.zeros((nf,ne,ntens))
-    statev = np.zeros((nf,ne,nstatev))
-    de33 = np.zeros((nf,ne))
-
-    try:
-        # Loop over time increments
-        for i in range(1,nf):
-            kinc = i
-
-            # Loop over elements
-            for j in range(ne):
-                noel = j + 1
-
-                # Total strain increment
-                dstrain = strain[i,j]  - strain[i-1,j]
-
-                # Stress integration in corotational material csys
-                stress[i,j],statev[i,j],de33[i,j],er = ummdp(stress[i-1,j],
-                                                             statev[i-1,j],
-                                                             dstrain,ndi,nshr,
-                                                             ntens,nstatev,
-                                                             props,nprops,
-                                                             noel,kinc)
-
-                # Total strain in thickness direction
-                de33[i,j] = de33[i,j] + de33[i-1,j]
-
-                # Check if ummdp returns any error
-                if er != 0:
-                    raise StopIteration
-
-    except StopIteration:
-        print('Error >> stress integration failed, check ummdp log file.')
-        return
+    # Stress integration in corotational material csys
+    stress,statev,de33  = _funcs.ummdp(strain,ne,ndi,nshr,ntens,nstatev,
+                                       props,nprops,nf,fout)
 
     # Rotate cauchy stress to global csys and convert to tensor form
     stress = _funcs.rotate_tensor(stress,rot,rotm,ne,dof,ndi,nshr,ntens,nf,
@@ -89,6 +56,6 @@ def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,nprops,
 
     # Rotate statev to global csys
     statev[...,1:] = _funcs.rotate_tensor(statev[...,1:],rot,rotm,ne,dof,ndi,
-                                          nshr,ntens,nf,dir=1,voigt=1,eng=0)
+                                          nshr,ntens,nf,dir=1,voigt=1,eng=1)
 
     return stress,statev,de33

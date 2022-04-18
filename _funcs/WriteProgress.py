@@ -2,8 +2,9 @@ import os
 import numpy as np
 
 def write_progress(it,x,phi,nvars,nt,fout,best=''):
-
     """
+    Write identification progress of variables and cost function. 
+
     Parameters
     ----------
     it : int
@@ -49,7 +50,11 @@ def write_progress(it,x,phi,nvars,nt,fout,best=''):
         head = f'{head};{";".join(headx)}'
 
         # Insert cost function
-        lout = np.insert(x,0,phi)
+        if nt > 1:
+            lout = np.insert(x,0,phi)
+            lout = np.insert(lout,0,np.sum(phi))
+        else:
+            lout = np.insert(x,0,phi)
 
         # Insert evaluation number
         lout = np.insert(lout,0,it)
@@ -61,7 +66,11 @@ def write_progress(it,x,phi,nvars,nt,fout,best=''):
     else:
 
         # Insert cost function
-        lout = np.insert(x,0,phi)
+        if nt > 1:
+            lout = np.insert(x,0,phi)
+            lout = np.insert(lout,0,np.sum(phi))
+        else:
+            lout = np.insert(x,0,phi)
 
         # Insert evaluation number
         lout = np.insert(lout,0,it)

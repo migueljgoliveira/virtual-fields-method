@@ -1,2 +1,0 @@
-.: Write final data
-	. ivw and evw for each vf and each test

@@ -3,8 +3,8 @@ import shutil
 import meshio
 import numpy as np
 
-def export_paraview(coord,displ,conn,strain,vol,stress,statev,d33,pkstress,vfs,
-                    ne,dof,nvfs,nf,nt,out,test,folder='output'):
+def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
+                    pkstress,vfs,dof,nvfs,nf,test,nt,out,folder='output'):
     """
     Export experimental finite element mesh to paraview file.
 
@@ -20,37 +20,36 @@ def export_paraview(coord,displ,conn,strain,vol,stress,statev,d33,pkstress,vfs,
         Strain in global csys.
     stress : (nf,ne,ntens) , float
         Cauchy stress in global csys.
-    statev : (nf,ne,ntens+1) , float
-        Internal state variables in global csys.
-    d33 : (nf,ne) , float
+    peeq : (nf,ne) , float
+        Equivalent plastic strain.
+    pstrain : (nf,ne,ntens) , float
+        Plastic strain in global csys.
+    de33 : (nf,ne) , float
         Strain in thickness direction.
     pkstress : (nf,ne,dof,dof) , float
         1st piola-kirchhoff stress.
     vfs : {(nvfs,ne,dof,dof), (nvfs,nn,dof)} , float
         User defined virtual fields.
-    ne : int
-        Number of elements.
     dof : int
         Number of degrees of freedom.
     nvfs : int
         Number of virtual fields.
-    nf : (nt,) , int
+    nf : int
         Number of increments.
+    test : str
+        Name of test.
     nt : int
         Number of tests.
     out : str
         Name of output folder.
-    test : str
-        Name of test.
     folder : str
         Type of export folder.
-    """
 
-    # Swap out-of-plane shear components for paraview notation
-    if dof == 3:
-        strain = strain[...,[0,1,2,3,5,4]]
-        stress = stress[...,[0,1,2,3,5,4]]
-        statev[...,1:] = statev[...,[1,2,3,4,6,5]]
+    Notes
+    -----
+    ne : int
+        Number of elements.
+    """
 
     # Nodes and elements connectivity
     points = coord
@@ -78,8 +77,8 @@ def export_paraview(coord,displ,conn,strain,vol,stress,statev,d33,pkstress,vfs,
             cdata = {
                      'LE': [strain[f,...]],
                       'S': [stress[f,...]],
-                   'PEEQ': [statev[f,...,0]],
-                     'PE': [statev[f,...,1:]],
+                   'PEEQ': [peeq[f,...]],
+                     'PE': [pstrain[f,...]],
                      'PK': [pkstress[f,...]],
                     'VOL': [vol],
                     }
@@ -87,11 +86,11 @@ def export_paraview(coord,displ,conn,strain,vol,stress,statev,d33,pkstress,vfs,
             # Add virtual strain fields
             if (folder == 'output'):
                 for i in range(nvfs):
-                    cdata[f'VF{i+1}'] = [vfs['e'][i,...]]
+                    cdata[f'VF{i+1}'] = [vfs['e'][i,f,...]]
 
             # Add thickness strain
             if dof == 2:
-                cdata['d33'] = [d33[f,...]]
+                cdata['de33'] = [de33[f,...]]
 
             # Write data
             w.write_data(f,point_data=pdata,cell_data=cdata)

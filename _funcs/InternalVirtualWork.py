@@ -1,9 +1,9 @@
 import numpy as np
-
+from time import time
 import _funcs
 
 def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
-                          nstatev,nvfs,nf,nprops,props,nlgeom,symm):
+                          nstatev,nvfs,nf,nprops,props,nlgeom,symm,fout):
     """
     Compute the internal virtual work.
 
@@ -45,30 +45,32 @@ def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
         Flag for small or large deformation framework (0/1).
     symm : (nsymm,), int
         List of symmetry conditions.
+    fout : str
+        Name of output folder.
 
     Returns
     -------
-    ivw : (nf,nvfs) , float
+    ivw : (nvfs,nf) , float
         Internal virtual work.
     """
 
     # Compute cauchy stress on global csys
     stress,_,de33 = _funcs.cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,
-                                         nstatev,nf,nprops,props,voigt=0)
+                                         nstatev,nf,nprops,props,fout)
 
-    # Large deformation framework
+    # Large deformation formulation
     if nlgeom:
 
         # Compute 1st piola-kirchhoff stress
-        pkstress = _funcs.piola_kirchhoff_stress(stress,de33,dfgrd)
+        pkstress = _funcs.piola_kirchhoff_stress(stress,de33,dfgrd,ne,dof,nf)
 
         # Compute internal virtual work
-        ivw = pkstress[:,None] * vfs[None] * vol[None,None,:,None,None]
+        ivw = pkstress[None] * vfs * vol[None,None,:,None]
 
-        # Sum internal virtual work along ne and dof
-        ivw = np.nansum(ivw,(2,3,4))
+        # Sum internal virtual work along ne and ncomp
+        ivw = np.nansum(ivw,(2,3))
 
-    # Small deformation framework
+    # Small deformation formulation
     else:
 
         # Transform cauchy stress tensor to voigt notation
@@ -84,18 +86,18 @@ def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
         ivw = np.nansum(ivw,(2,3))
 
     # Apply symmetry conditions
-    # if symm is not None:
+    if symm is not None:
 
-    #     # Symmetry condition in x-direction
-    #     if (0 in symm) and (1 not in symm):
-    #         ivw = ivw * 2
+        # Symmetry condition in x-direction
+        if (0 in symm) and (1 not in symm):
+            ivw = ivw * 2
 
-    #     # Symmetry condition in y-direction
-    #     elif (0 not in symm) and (1 in symm):
-    #         ivw = ivw * 2
+        # Symmetry condition in y-direction
+        elif (0 not in symm) and (1 in symm):
+            ivw = ivw * 2
 
-    #     # Symmetry condition in x- and y-directions
-    #     elif (0 in symm) and (1 in symm):
-    #         ivw = ivw * 4
+        # Symmetry condition in x- and y-directions
+        elif (0 in symm) and (1 in symm):
+            ivw = ivw * 4
 
     return ivw

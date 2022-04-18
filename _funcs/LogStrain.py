@@ -46,14 +46,14 @@ def log_strain(coord,displ,conn,rotm,thick,ne,npe,dof,ndi,nshr,ntens,nf):
         Elements volume.
     """
 
-    # Derivatives of shape function and jacobian
+    # Partial derivatives of shape functions, jacobian matrix and volume
     if npe == 4:
-        dndnr,jac,vol = _funcs.el_quad4r(coord[conn],thick)
+        dNdnr,jac,vol = _funcs.el_quad4r(coord[conn],thick)
     elif npe == 8:
-        dndnr,jac,vol = _funcs.el_hex8r(coord[conn])
+        dNdnr,jac,vol = _funcs.el_hex8r(coord[conn])
 
     # Deformaton gradient
-    dfgrd = _funcs.deformation_gradient(displ[:,conn],dndnr,jac,dof)
+    dfgrd = _funcs.deformation_gradient(displ[:,conn],dNdnr,jac,dof)
 
     # Polar decomposition of deformation gradient to right stretch tensor
     rot,strch = _funcs.polar_decomposition(dfgrd,side='left')

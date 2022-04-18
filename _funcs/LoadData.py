@@ -28,8 +28,10 @@ def load_data(prjnm,tests,symm,nt):
         Elements connectivity.
     centroid : (nt,(ne,dof)) , float
         Elements centroid reference coordinates.
-    force : (nt,(nf,dof)),float
+    force : (nt,(nf,dof)) , float
         Global loading force.
+    time : (nt,(nf,)) , float
+        Time increments.
     thick : (nt,) , float
         Specimen initial thickness.
     ori : (nt,) , float
@@ -44,6 +46,7 @@ def load_data(prjnm,tests,symm,nt):
     conn = [None]*nt
     displ = [None]*nt
     force = [None]*nt
+    time = [None]*nt
     centr = [None]*nt
     thick = np.zeros(nt)
     ori = np.zeros(nt)
@@ -78,22 +81,22 @@ def load_data(prjnm,tests,symm,nt):
         lmax = np.nanmax(coord[t],0)
 
         # No symmetries
-        # if symm[t] is None:
-        #     coord[t] = coord[t] - (lmin + lmax)/2
-        # else:
-        #     # Symmetry condition in x-direction
-        #     if (0 in symm[t]) and (1 not in symm[t]):
-        #         coord[t,0] = coord[t,0] - lmin[0]
-        #         coord[t,1] = coord[t,1] - (lmin[1] + lmax[1])/2
+        if symm[t] is None:
+            coord[t] = coord[t] - (lmin + lmax)/2
+        else:
+            # Symmetry condition in x-direction
+            if (0 in symm[t]) and (1 not in symm[t]):
+                coord[t,0] = coord[t,0] - lmin[0]
+                coord[t,1] = coord[t,1] - (lmin[1] + lmax[1])/2
 
-        #     # Symmetry condition in y-direction
-        #     elif (0 not in symm[t]) and (1 in symm[t]):
-        #         coord[t,0] = coord[t,0] - (lmin[0] + lmax[0])/2
-        #         coord[t,1] = coord[t,1] - lmin[1]
+            # Symmetry condition in y-direction
+            elif (0 not in symm[t]) and (1 in symm[t]):
+                coord[t,0] = coord[t,0] - (lmin[0] + lmax[0])/2
+                coord[t,1] = coord[t,1] - lmin[1]
 
-        #     # Symmetry condition in x- and y-directions
-        #     elif (0 in symm[t]) and (1 in symm[t]):
-        #         coord[t] = coord[t] - lmin
+            # Symmetry condition in x- and y-directions
+            elif (0 in symm[t]) and (1 in symm[t]):
+                coord[t] = coord[t] - lmin
 
         # Load elements connectivity
         filename = f'{filesdir}_Elements.csv'
@@ -105,9 +108,13 @@ def load_data(prjnm,tests,symm,nt):
             filename = f'{filesdir}_U_{f}.csv'
             displ[t][f,:] = np.loadtxt(filename,skiprows=1,delimiter=';')[:,1:]
 
-        # Load global forcesq
+        # Load global forces
         filename = f'{filesdir}_Force.csv'
-        force[t] = np.loadtxt(filename,skiprows=1,delimiter=';')[:,1:]
+        force[t] = np.loadtxt(filename,skiprows=1,delimiter=';')
+
+        # Load time increments
+        filename = f'{filesdir}_Time.csv'
+        time[t] = np.loadtxt(filename,skiprows=1,delimiter=';')
 
         # Check if force increments is equal to displacement increments
         if len(force[t]) != nf[t]:
@@ -124,4 +131,4 @@ def load_data(prjnm,tests,symm,nt):
         # Compute elements centroid
         centr[t] = np.mean(coord[t][conn[t]],1)
 
-    return coord,displ,conn,centr,force,thick,ori,nf
+    return coord,displ,conn,centr,force,time,thick,ori,nf

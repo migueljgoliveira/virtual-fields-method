@@ -1,6 +1,6 @@
 import numpy as np
 
-def dim_vars(coord,conn,nt):
+def dim_vars(coord,conn,nt,nlgeom):
     """
     Set dimensional variables.
 
@@ -12,6 +12,8 @@ def dim_vars(coord,conn,nt):
         Elements connectivity.
     nt : int
         Number of tests.
+    nlgeom : bool
+        Flag for small or large deformation framework (0/1).
 
     Returns
     -------
@@ -29,6 +31,8 @@ def dim_vars(coord,conn,nt):
         Number of shear tensor components.
     ntens : (nt,) , int
         Number of tensor components.
+    ncomp : (nt,) , int
+        Number of tensor components depending on deformation formulation.
     nstatev : (nt,) , int
         Number of internal state variables.
     """
@@ -41,6 +45,7 @@ def dim_vars(coord,conn,nt):
     ndi = np.zeros(nt,dtype=int)
     nshr = np.zeros(nt,dtype=int)
     ntens = np.zeros(nt,dtype=int)
+    ncomp = np.zeros(nt,dtype=int)
     nstatev = np.zeros(nt,dtype=int)
 
     for t in range(nt):
@@ -68,7 +73,13 @@ def dim_vars(coord,conn,nt):
         # Number of tensor components
         ntens[t] = ndi[t] + nshr[t]
 
+        # Number of tensor components depending on deformation formulation
+        if nlgeom:
+            ncomp = dof*dof
+        else:
+            ncomp = ntens
+
         # Number of internal state variables
         nstatev[t] = ntens[t] + 1
 
-    return nn,ne,npe,dof,ndi,nshr,ntens,nstatev
+    return nn,ne,npe,dof,ndi,nshr,ntens,ncomp,nstatev

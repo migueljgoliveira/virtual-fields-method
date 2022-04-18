@@ -8,7 +8,7 @@ def external_virtual_work(force,vfs):
     ----------
     force : (nf,dof) , float
         Global loading force.
-    vfs : (nvfs,dof) , float
+    vfs : (nvfs,nf,dof) , float
         User defined virtual fields.
 
     Returns
@@ -27,7 +27,8 @@ def external_virtual_work(force,vfs):
     """
 
     # Compute external virtual work
-    evw = 2 * force[:,None] * vfs[None]
+    # evw = 2 * force[None] * vfs
+    evw = force[None] * vfs[...,0,:]
 
     # Sum external virtual work along dof
     evw = np.nansum(evw,2)

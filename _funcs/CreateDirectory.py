@@ -24,7 +24,12 @@ def create_directory(prjname,fout,tests,nt):
 
     # Set directories
     cwd = os.getcwd()
-    dirout = f'{cwd}\\output\\{fout}'
+    outf = f'{cwd}\\output'
+    dirout = f'{outf}\\{fout}'
+
+    # Create output folder
+    if not os.path.isdir(outf):
+        os.mkdir(outf)
 
     # Delete old output folder
     if os.path.isdir(dirout):

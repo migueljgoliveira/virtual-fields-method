@@ -27,8 +27,9 @@ def load_tests(data,ln):
     if ln != -1:
         tests = []
         nt = int(data[ln+1])
-        for i in range(1,nt+1):
-            tests.append(data[ln+1+i])
+        for i in range(nt):
+            ldata = data[ln+2+i].split(',')
+            tests.append(ldata[1])
     else:
         _funcs.error('*Tests keyword is not defined in options file.')
 
@@ -135,7 +136,7 @@ def load_algorithm(data,ln):
 
     return algo
 
-def load_virtualfields(data,ln,nt):
+def load_virtual_fields(data,ln,nt):
     """
     Load information on selected virtual fields.
 
@@ -150,22 +151,92 @@ def load_virtualfields(data,ln,nt):
 
     Returns
     -------
-    ivfs : (nt,{(nvfs)}) , int
+    ivfs : (nt,{'ud' or 'sb'}) , int
         List of selected virtual fields.
     """
 
+    kw = '*Virtual Fields.'
+
     ivfs = [None]*nt
     if ln != -1:
-        if data[ln+1].lower() == 'ud':
-            for t in range(nt):
-                lvfs = [int(i) for i in data[ln+2+t].split(',')]
-                ivfs[t] = {'ud': lvfs}
+        for t in range(nt):
+            ldata = data[ln+1+t].split(',')
+            if int(ldata[0]) == t+1:
 
-    # Default
+                # User-defined virtual fields
+                if ldata[1].lower() == 'ud':
+                    try:
+                        lvfs = [int(i) for i in ldata[2:]]
+                    except:
+                        _funcs.error(f'{kw} Test {t+1} user-defined virtual fields uncorrectly defined.')
+
+                    ivfs[t] = {'ud': lvfs}
+
+                # Sensivitity-based virtual fields
+                elif ldata[1].lower() == 'sb':
+                    try:
+                        dx = float(ldata[2])
+                    except:
+                        dx = 0.1
+
+                    ivfs[t] = {'sb': {'dx': dx}}
+
+                else:
+                    _funcs.error(f'{kw} Test {t+1} type of virtual fields not available.')
+            else:
+                _funcs.error(f'{kw} Incorrect number for test {t+1}.')
     else:
-        ivfs = {'ud': [[1,3,4]]*nt}
+        _funcs.error(f'{kw} Keyword is not defined in options file.')
 
     return ivfs
+
+def load_boundary_conditions(data,ln,ivfs,nt):
+    """
+    Load tests boundary conditions.
+
+    Parameters
+    ----------
+    data : (), str
+        Options file data contents. 
+    ln : int
+        Line number of boundary conditions option in data file.
+    ivfs : (nt,{'ud' or 'sb'}) , int
+        List of selected virtual fields.
+    nt : int
+        Number of tests.
+
+    Returns
+    -------
+    bc : (nt,(2,4) or None) , int
+        Tests boundary conditions.
+    """
+
+    kw = '*Boundary Conditions.'
+
+    comp = ['X','Y','Z']
+
+    bc = [None]*nt
+    n = 0
+    for t in range(nt):
+        if list(ivfs[t].keys())[0] == 'sb':
+            if ln != -1:
+                bc[t] = np.zeros((2,4))
+                for i in range(2):
+                    ldata = data[ln+1+2*n+i].split(',')
+                    try:
+                        if int(ldata[0]) != t+1:
+                            pass
+                        else:
+                            bc[t][i,:] = np.array([int(j) for j in ldata[1:]])
+                    except:
+                        _funcs.error(f'{kw} {comp[i]} component not defined for test {t+1}.')
+
+            else:
+                _funcs.error(f'{kw} Keyword is required for test {t+1}.')
+
+            n += 1
+
+    return bc
 
 def load_properties(data,ln):
     """
@@ -197,7 +268,7 @@ def load_properties(data,ln):
 
     return props,nprops
 
-def load_variables(data,ln,nprops):
+def load_variables(data,ln,nprops,run):
     """
     Load identification variables flags.
 
@@ -215,14 +286,18 @@ def load_variables(data,ln,nprops):
         Number of identification variables.
     """
 
+    vars = np.zeros(nprops,dtype=bool)
     if ln != -1:
-        vars = np.zeros(nprops,dtype=bool)
         for i in range(nprops):
             vars[i] = bool(eval(data[ln+1+i].split(',')[-1]))
     else:
-        _funcs.error('*Variables keyword is not defined in options file.')
+        if run == 'identification':
+            _funcs.error('*Variables keyword is not defined in options file.')
 
     nvars = np.sum(vars)
+
+    if (run == 'identification') and (nvars == 0):
+        _funcs.error('At least one identification variable should be defined.')
 
     return vars,nvars
 
@@ -335,7 +410,7 @@ def load_options(prjnm):
         l += 1
 
     # Get keywords line numbers
-    lsim,lid,ltest,lfout,lnlgeom,lnsymm,lalgo,lvfs,lprops,lvars,lbounds,lconstr = [-1]*12
+    lsim,lid,ltest,lfout,lnlgeom,lnsymm,lalgo,lvfs,lbc,lprops,lvars,lbounds,lconstr = [-1]*13
     l = 0
     for line in data:
         line = line.lower()
@@ -355,6 +430,8 @@ def load_options(prjnm):
             lalgo = l
         elif '*virtualfields' in line:
             lvfs = l
+        elif '*boundaryconditions' in line:
+            lbc = l
         elif '*properties' in line:
             lprops = l
         elif '*variables' in line:
@@ -392,13 +469,16 @@ def load_options(prjnm):
     algo = load_algorithm(data,lalgo)
 
     # Load selected virtual fields
-    ivfs = load_virtualfields(data,lvfs,nt)
+    ivfs = load_virtual_fields(data,lvfs,nt)
+
+    # Load output folder name
+    bc = load_boundary_conditions(data,lbc,ivfs,nt)
 
     # Load material properties
     props,nprops = load_properties(data,lprops)
 
     # Load variables flags
-    vars,nvars = load_variables(data,lvars,nprops)
+    vars,nvars = load_variables(data,lvars,nprops,run)
 
     # Load identification properties boundaries
     bounds = load_boundaries(data,lbounds,vars,algo,nprops)
@@ -406,4 +486,4 @@ def load_options(prjnm):
     # Load identification properties constraints
     constr = load_constraints(data,lconstr,nprops)
 
-    return run,tests,fout,props,vars,bounds,constr,nlgeom,symm,algo,ivfs,nprops,nvars,nt
+    return run,tests,fout,props,vars,bounds,constr,nlgeom,symm,algo,ivfs,bc,nprops,nvars,nt

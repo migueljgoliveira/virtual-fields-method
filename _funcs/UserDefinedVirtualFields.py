@@ -3,7 +3,7 @@ from numpy import pi,sin,cos,sign
 
 def user_defined_virtual_fields(coord,centr,ne,dof,ivfs):
     """
-    Generate user defined virtual fields.
+    Generate user-defined virtual fields.
 
     Parameters
     ----------
@@ -16,12 +16,12 @@ def user_defined_virtual_fields(coord,centr,ne,dof,ivfs):
     dof : int
         Number of degrees of freedom.
     ivfs : {(nt,nvfs)} , int
-        List of user defined virtual fields type. 
+        List of user-defined virtual fields. 
 
     Returns
     -------
-    vfs : {(nvfs,ne,dof,dof), (nvfs,nn,dof)} , float
-        User defined virtual fields.
+    vfs : {(nvfs,ne,dof*dof), (nvfs,nn,dof)} , float
+        User-defined virtual fields.
     nvfs : int
         Number of virtual fields.
 
@@ -29,9 +29,32 @@ def user_defined_virtual_fields(coord,centr,ne,dof,ivfs):
     -----
     nn : int
         Number of nodes.
+
+    The virtual strains are stored in flat format according to:
+
+        2D
+            vfs['e'][...,0] = xx
+            vfs['e'][...,1] = yy
+
+            vfs['e'][...,2] = xy
+            vfs['e'][...,3] = yx
+
+        3D
+            vfs['e'][...,0] = xx
+            vfs['e'][...,1] = yy
+            vfs['e'][...,2] = zz
+
+            vfs['e'][...,3] = xy
+            vfs['e'][...,4] = yx
+
+            vfs['e'][...,5] = xz
+            vfs['e'][...,6] = zx
+
+            vfs['e'][...,7] = yz
+            vfs['e'][...,8] = zy
     """
 
-    # Number of user defined virtual fields
+    # Number of user-defined virtual fields
     nvfs = len(ivfs['ud'])
 
     # Compute half-width and half-height of geometry
@@ -45,121 +68,122 @@ def user_defined_virtual_fields(coord,centr,ne,dof,ivfs):
     xu,yu = np.max(xn),np.max(yn)
 
     # Create variable to store virtual fields
-    vfs = {'e': np.zeros((nvfs,ne,dof,dof)),
-           'u': np.zeros((nvfs,dof))}
+
+    vfs = {'e': np.zeros((nvfs,1,ne,dof*dof)),
+           'u': np.zeros((nvfs,1,dof))}
 
     i = 0
     for ivf in ivfs['ud']:
 
         # Type 1 (Joao # 1)
         if ivf == 1:
-            vfs['u'][i,0] = 0
-            vfs['u'][i,1] = yu / h
+            vfs['u'][i,:,0] = 0
+            vfs['u'][i,:,1] = yu / h
 
-            vfs['e'][i,:,0,0] = 0
-            vfs['e'][i,:,0,1] = 0
-            vfs['e'][i,:,1,0] = 0
-            vfs['e'][i,:,1,1] = 1 / h
+            vfs['e'][i,...,0] = 0
+            vfs['e'][i,...,1] = 1 / h
+            vfs['e'][i,...,2] = 0
+            vfs['e'][i,...,3] = 0
 
         # Type 2
         if ivf == 2:
-            vfs['u'][i,0] = xu / w
-            vfs['u'][i,1] = 0
+            vfs['u'][i,:,0] = xu / w
+            vfs['u'][i,:,1] = 0
 
-            vfs['e'][i,:,0,0] = 1 / w
-            vfs['e'][i,:,0,1] = 0
-            vfs['e'][i,:,1,0] = 0
-            vfs['e'][i,:,1,1] = 0
+            vfs['e'][i,...,0] = 1 / w
+            vfs['e'][i,...,1] = 0
+            vfs['e'][i,...,2] = 0
+            vfs['e'][i,...,3] = 0
 
         # Type 3
         if ivf == 3:
-            vfs['u'][i,0] = (xu/w) * (abs(yu)-h)/h
-            vfs['u'][i,1] = 0.0
+            vfs['u'][i,:,0] = (xu/w) * (abs(yu)-h)/h
+            vfs['u'][i,:,1] = 0.0
 
-            vfs['e'][i,:,0,0] = (abs(ye)-h) / (w*h)
-            vfs['e'][i,:,0,1] = sign(ye) * xe/(w*h)
-            vfs['e'][i,:,1,0] = 0
-            vfs['e'][i,:,1,1] = 0
+            vfs['e'][i,...,0] = (abs(ye)-h) / (w*h)
+            vfs['e'][i,...,1] = 0
+            vfs['e'][i,...,2] = sign(ye) * xe/(w*h)
+            vfs['e'][i,...,3] = 0
 
         # Type 4
         if ivf == 4:
-            vfs['u'][i,0] = (1/pi) * sin(pi*xu/w) * cos(pi*yu/(2*h))
-            vfs['u'][i,1] = (1/pi) * sin(pi*xu/w) * cos(pi*yu/(2*h))
+            vfs['u'][i,:,0] = (1/pi) * sin(pi*xu/w) * cos(pi*yu/(2*h))
+            vfs['u'][i,:,1] = (1/pi) * sin(pi*xu/w) * cos(pi*yu/(2*h))
 
-            vfs['e'][i,:,0,0] = (1/w) * cos(pi*xe/w) * cos(pi*ye/(2*h))
-            vfs['e'][i,:,0,1] = -(1/(2*h)) * sin(pi*xe/w) * sin(pi*ye/(2*h))
-            vfs['e'][i,:,1,0] = (1/w) * cos(pi*xe/w) * cos(pi*ye/(2*h))
-            vfs['e'][i,:,1,1] = -(1/(2*h)) * sin(pi*xe/w) * sin(pi*ye/(2*h))
+            vfs['e'][i,...,0] = (1/w) * cos(pi*xe/w) * cos(pi*ye/(2*h))
+            vfs['e'][i,...,1] = -(1/(2*h)) * sin(pi*xe/w) * sin(pi*ye/(2*h))
+            vfs['e'][i,...,2] = -(1/(2*h)) * sin(pi*xe/w) * sin(pi*ye/(2*h))
+            vfs['e'][i,...,3] = (1/w) * cos(pi*xe/w) * cos(pi*ye/(2*h))
 
         # Type 5 (Joao # 2)
         if ivf == 5:
-            vfs['u'][i,0] = xu*(yu**2-yu*h) / (w*h**2)
-            vfs['u'][i,1] = 0
+            vfs['u'][i,:,0] = xu*(yu**2-yu*h) / (w*h**2)
+            vfs['u'][i,:,1] = 0
 
-            vfs['e'][i,:,0,0] = (ye**2-ye*h) / (w*h**2)
-            vfs['e'][i,:,0,1] = xe*(2*ye-h) / (w*h**2)
-            vfs['e'][i,:,1,0] = 0
-            vfs['e'][i,:,1,1] = 0
+            vfs['e'][i,...,0] = (ye**2-ye*h) / (w*h**2)
+            vfs['e'][i,...,1] = 0
+            vfs['e'][i,...,2] = xe*(2*ye-h) / (w*h**2)
+            vfs['e'][i,...,3] = 0
 
         # Type 6 (Joao # 3)
         if ivf == 6:
-            vfs['u'][i,0] = sin(pi*xu/w) * sin(pi*yu/h)
-            vfs['u'][i,1] = 0
+            vfs['u'][i,:,0] = sin(pi*xu/w) * sin(pi*yu/h)
+            vfs['u'][i,:,1] = 0
 
-            vfs['e'][i,:,0,0] = (pi/w) * cos(pi*xe/w) * sin(pi*ye/h)
-            vfs['e'][i,:,0,1] = (pi/h) * sin(pi*xe/w) * cos(pi*ye/h)
-            vfs['e'][i,:,1,0] = 0
-            vfs['e'][i,:,1,1] = 0
+            vfs['e'][i,...,0] = (pi/w) * cos(pi*xe/w) * sin(pi*ye/h)
+            vfs['e'][i,...,1] = 0
+            vfs['e'][i,...,2] = (pi/h) * sin(pi*xe/w) * cos(pi*ye/h)
+            vfs['e'][i,...,3] = 0
 
         # Type 7 (Joao # 4)
         if ivf == 7:
-            vfs['u'][i,0] = 0
-            vfs['u'][i,1] = sin(pi*xu/w) * sin(pi*yu/h)
+            vfs['u'][i,:,0] = 0
+            vfs['u'][i,:,1] = sin(pi*xu/w) * sin(pi*yu/h)
 
-            vfs['e'][i,:,0,0] = 0
-            vfs['e'][i,:,0,1] = 0
-            vfs['e'][i,:,1,0] = (pi/w) * cos(pi*xe/w) * sin(pi*ye/h)
-            vfs['e'][i,:,1,1] = (pi/h) * sin(pi*xe/w) * cos(pi*ye/h)
+            vfs['e'][i,...,0] = 0
+            vfs['e'][i,...,1] = (pi/h) * sin(pi*xe/w) * cos(pi*ye/h)
+            vfs['e'][i,...,2] = 0
+            vfs['e'][i,...,3] = (pi/w) * cos(pi*xe/w) * sin(pi*ye/h)
 
         # Type 8 (Joao # 5)
         if ivf == 8:
-            vfs['u'][i,0] = 0
-            vfs['u'][i,1] = xu*(yu**2-yu*h) / (w*h**2)
+            vfs['u'][i,:,0] = 0
+            vfs['u'][i,:,1] = xu*(yu**2-yu*h) / (w*h**2)
 
-            vfs['e'][i,:,0,0] = 0
-            vfs['e'][i,:,0,1] = 0
-            vfs['e'][i,:,1,0] = (ye**2-ye*h) / (w*h**2)
-            vfs['e'][i,:,1,1] = xe*(2*ye-h) / (w*h**2)
+            vfs['e'][i,...,0] = 0
+            vfs['e'][i,...,1] = xe*(2*ye-h) / (w*h**2)
+            vfs['e'][i,...,2] = 0
+            vfs['e'][i,...,3] = (ye**2-ye*h) / (w*h**2)
 
         # Type 9 (Joao # 6)
         if ivf == 9:
-            vfs['u'][i,0] = 0
-            vfs['u'][i,1] = (yu**2*h-yu**3)/h**3 * sin(pi*xu/w)
+            vfs['u'][i,:,0] = 0
+            vfs['u'][i,:,1] = (yu**2*h-yu**3)/h**3 * sin(pi*xu/w)
 
-            vfs['e'][i,:,0,0] = 0
-            vfs['e'][i,:,0,1] = 0
-            vfs['e'][i,:,1,0] = pi/(w*h**3) * (h*ye**2-ye**3) * cos(pi*xe/w)
-            vfs['e'][i,:,1,1] = (2*h*ye-3*ye**2)/h**3 * sin(pi*xe/w)
+            vfs['e'][i,...,0] = 0
+            vfs['e'][i,...,1] = (2*h*ye-3*ye**2)/h**3 * sin(pi*xe/w)
+            vfs['e'][i,...,2] = 0
+            vfs['e'][i,...,3] = pi/(w*h**3) * (h*ye**2-ye**3) * cos(pi*xe/w)
 
         # Type 10 (Joao # 7)
         if ivf == 10:
-            vfs['u'][i,0] = ((h**3-yu**3)/h**3) * sin(pi*xu/w)
-            vfs['u'][i,1] = 0
+            vfs['u'][i,:,0] = ((h**3-yu**3)/h**3) * sin(pi*xu/w)
+            vfs['u'][i,:,1] = 0
 
-            vfs['e'][i,:,0,0] = pi*(h**3-ye**3)/(w*h**3) * cos(pi*xe/w)
-            vfs['e'][i,:,0,1] = - ((3*ye**2)/h**3) * sin(pi*xe/w)
-            vfs['e'][i,:,1,0] = 0
-            vfs['e'][i,:,1,1] = 0
+            vfs['e'][i,...,0] = pi*(h**3-ye**3)/(w*h**3) * cos(pi*xe/w)
+            vfs['e'][i,...,1] = 0
+            vfs['e'][i,...,2] = - ((3*ye**2)/h**3) * sin(pi*xe/w)
+            vfs['e'][i,...,3] = 0
 
         # Type 11 (Joao # 8)
         if ivf == 11:
-            vfs['u'][i,0] = 0
-            vfs['u'][i,1] = (yu*h**2-yu**3)/h**3 * sin(pi*xu/w)
+            vfs['u'][i,:,0] = 0
+            vfs['u'][i,:,1] = (yu*h**2-yu**3)/h**3 * sin(pi*xu/w)
 
-            vfs['e'][i,:,0,0] = 0
-            vfs['e'][i,:,0,1] = 0
-            vfs['e'][i,:,1,0] = pi/(w*h**3) * (ye*h**2-ye**3) * cos(pi*xe/w)
-            vfs['e'][i,:,1,1] = (h**2-3*ye**2)/h**3 * sin(pi*xe/w)
+            vfs['e'][i,...,0] = 0
+            vfs['e'][i,...,1] = (h**2-3*ye**2)/h**3 * sin(pi*xe/w)
+            vfs['e'][i,...,2] = 0
+            vfs['e'][i,...,3] = pi/(w*h**3) * (ye*h**2-ye**3) * cos(pi*xe/w)
 
         i += 1
 

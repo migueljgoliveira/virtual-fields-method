@@ -1,6 +1,8 @@
 import numpy as np
 
-def piola_kirchhoff_stress(stress,de33,dfgrd):
+import _funcs
+
+def piola_kirchhoff_stress(stress,de33,dfgrd,ne,dof,nf,flat=1):
     """ 
     Compute the 1st Piola-Kirchhoff stress.
 
@@ -12,20 +14,19 @@ def piola_kirchhoff_stress(stress,de33,dfgrd):
         Strain in thickness direction.
     dfgrd : (nf,ne,dof,dof) , float
         Deformation gradient.
-
-    Returns
-    -------
-    pkstress : (nf,ne,dof,dof) , float
-        1st piola-kirchhoff stress.
-
-    Notes
-    -----
-    nf : int
-        Number of increments.
     ne : int
         Number of elements.
     dof : int
         Number of degrees of freedom.
+    nf : int
+        Number of increments.
+    flat : bool
+        Flag to flatten tensor (0/1).
+
+    Returns
+    -------
+    pkstress : (nf,ne,dof*dof) , float
+        1st piola-kirchhoff stress.
     """
 
     # Determinant of deformation gradient
@@ -36,5 +37,9 @@ def piola_kirchhoff_stress(stress,de33,dfgrd):
 
     # 1st piola-kirchhoff stress
     pkstress = dfgrddet[...,None,None] * stress @ dfgrdinvt
+
+    # Flatten 1st piola-kirchhoff stress and rearrange components order
+    if flat:
+        pkstress = _funcs.flatten_tensor(pkstress,ne,dof,nf)
 
     return pkstress
