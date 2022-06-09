@@ -133,5 +133,4 @@ dmypy.json
 *.csv
 *.cae
 *.inp
-output/**/**.vfm
-*.ummdp
+output/*
