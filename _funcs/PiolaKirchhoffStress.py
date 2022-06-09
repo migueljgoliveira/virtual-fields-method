@@ -1,8 +1,8 @@
 import numpy as np
 
-import _funcs
+import _utils
 
-def piola_kirchhoff_stress(stress,de33,dfgrd,ne,dof,nf,flat=1):
+def piola_kirchhoff_stress(stress,de33,dfgrd,ne,dof,nf,flat=True):
     """ 
     Compute the 1st Piola-Kirchhoff stress.
 
@@ -21,7 +21,7 @@ def piola_kirchhoff_stress(stress,de33,dfgrd,ne,dof,nf,flat=1):
     nf : int
         Number of increments.
     flat : bool
-        Flag to flatten tensor (0/1).
+        Flag to flatten tensor (False/True).
 
     Returns
     -------
@@ -40,6 +40,6 @@ def piola_kirchhoff_stress(stress,de33,dfgrd,ne,dof,nf,flat=1):
 
     # Flatten 1st piola-kirchhoff stress and rearrange components order
     if flat:
-        pkstress = _funcs.flatten_tensor(pkstress,ne,dof,nf)
+        pkstress = _utils.flatten_tensor(pkstress,ne,dof,nf)
 
     return pkstress

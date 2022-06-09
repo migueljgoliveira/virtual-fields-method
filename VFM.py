@@ -1,4 +1,7 @@
+import sys
+
 import _funcs
+import _utils
 
 def VFM(prjnm):
 
@@ -7,19 +10,21 @@ def VFM(prjnm):
     ##################
 
     # Load options
-    run,tests,fout,props,vars,bounds,constr,nlgeom,symm,algo,ivfs,bc,nprops,nvars,nt = _funcs.load_options(prjnm)
+    run,test,fout,props,vars,bounds,constr,nlgeom,vfs,bc,nprops,nvars,nt = _funcs.load_options(prjnm)
 
     # Create output directory
-    _funcs.create_directory(prjnm,fout,tests,nt)
+    dirout = _funcs.create_directory(prjnm,fout,test,nt)
+
+    # Print start info to log file and return start time
+    st = _funcs.print_start(prjname,fout,dirout)
 
     # Load project data
-    coord,displ,conn,centr,force,time,thick,ori,nf = _funcs.load_data(prjnm,
-                                                                      tests,
-                                                                      symm,nt)
+    coord,displ,conn,centr,force,time,thk,ori,nf = _funcs.load_data(prjnm,test,
+                                                                    nt)
 
     # Set dimensional mechanics variables
-    nn,ne,npe,dof,ndi,nshr,ntens,ncomp,nstatev = _funcs.dim_vars(coord,conn,nt,
-                                                                 nlgeom)
+    nn,ne,npe,dof,ndi,nshr,ntens,ncomp,nstatev = _funcs.dim_vars(coord,conn,
+                                                                 nt,nlgeom)
 
     # Compute material rotation tensor
     rotm = [None]*nt
@@ -31,50 +36,57 @@ def VFM(prjnm):
     for t in range(nt):
         strain[t],rot[t],dfgrd[t],vol[t] = _funcs.log_strain(coord[t],displ[t],
                                                              conn[t],rotm[t],
-                                                             thick[t],ne[t],
+                                                             thk[t],ne[t],
                                                              npe[t],dof[t],
-                                                             ndi[t],nshr[t],
-                                                             ntens[t],nf[t])
+                                                             ndi[t],ntens[t],
+                                                             nf[t])
 
     # Get boundary conditions degrees of freedom
-    bccte,bcfix,bcact = [None]*nt,[None]*nt,[None]*nt
+    bcdofs = [None]*nt
     for t in range(nt):
-        if list(ivfs[t].keys())[0] == 'sb':
-            bccte[t],bcfix[t],bcact[t] = _funcs.boundary_conditions(coord[t],
-                                                                    nn[t],
-                                                                    dof[t],
-                                                                    bc[t],t)
+        if 'sb' in list(vfs[t].keys()):
+            bcdofs[t] = _funcs.boundary_conditions(coord[t],nn[t],dof[t],
+                                                   bc[t],t)
 
     # Compute elements strain-displacement matrix
-    bg,mbginv,ielems = [None]*nt,[None]*nt,[None]*nt
+    bg,mbginv = [None]*nt,[None]*nt
     for t in range(nt):
-        if list(ivfs[t].keys())[0] == 'sb':
-            bg[t],mbginv[t],ielems[t] = _funcs.strain_displacement(coord[t],
-                                                                   conn[t],
-                                                                   bcfix[t],
-                                                                   nn[t],ne[t],
-                                                                   npe[t],
-                                                                   dof[t],
-                                                                   ncomp[t],
-                                                                   nlgeom)
+        if 'sb' in list(vfs[t].keys()):
+            bg[t],mbginv[t] = _funcs.strain_displacement(coord[t],conn[t],
+                                                         bcdofs[t],nn[t],ne[t],
+                                                         npe[t],dof[t],
+                                                         ncomp[t],nlgeom)
 
     # Select type of virtual fields
-    vfs,nvfs = [None]*nt,[None]*nt,
+    nvfs = [None]*nt
     for t in range(nt):
 
         # User-defined virtual fields
-        if list(ivfs[t].keys())[0] == 'ud':
+        if 'ud' in list(vfs[t].keys()):
+
+            # Generate user-defined virtual fields
             vfs[t],nvfs[t] = _funcs.user_defined_virtual_fields(coord[t],
-                                                                centr[t],
-                                                                ne[t],dof[t],
-                                                                ivfs[t])
+                                                                centr[t],ne[t],
+                                                                dof[t],vfs[t])
 
         # Sensitivity-based virtual fields
-        elif list(ivfs[t].keys())[0] == 'sb':
+        elif 'sb' in list(vfs[t].keys()):
 
             # Number of sensitivity-based virtual fields
             nvfs[t] = nvars
 
+            # Generate sensivity-based virtual fields
+            vfs[t] = _funcs.sensivity_based_virtual_fields(strain[t],rot[t],
+                                                           dfgrd[t],rotm[t],
+                                                           time[t],bg[t],
+                                                           mbginv[t],bcdofs[t],
+                                                           vfs[t],nn[t],ne[t],
+                                                           dof[t],ndi[t],
+                                                           nshr[t],ntens[t],
+                                                           ncomp[t],nstatev[t],
+                                                           nvfs[t],nf[t],
+                                                           nprops,props,vars,
+                                                           nlgeom,fout)
 
     ##############
     # PROCESSING #
@@ -87,70 +99,52 @@ def VFM(prjnm):
         if len(constr) > 0:
             props = _funcs.properties_constraints(props,constr)
 
-        _,_,res,phi = _funcs.simulation(strain,rot,dfgrd,rotm,force,time,vol,
-                                        bg,mbginv,bccte,bcact,ielems,vfs,nn,ne,
-                                        npe,dof,ndi,nshr,ntens,ncomp,nstatev,
-                                        nvfs,nf,nt,nprops,props,vars,nlgeom,
-                                        symm,ivfs,tests,fout)
+        # Perform vfm simulation with given material properties
+        ivw,evw,phi = _funcs.simulation(strain,rot,dfgrd,rotm,force,vol,vfs,ne,
+                                        dof,ndi,nshr,ntens,nstatev,nvfs,nf,nt,
+                                        nprops,props,nlgeom,fout)
+
+        # Write virtual work of given material properties
+        for t in range(nt):
+            _funcs.write_virtual_work(ivw[t],evw[t],test[t],nvfs[t],nf[t],
+                                      nt,fout)
+
+        # Print summary of simulation results to log
+        _funcs.print_result_simulation(phi,nt,fout,st)
 
     # Perform identification of material properties
     elif run == 'identification':
 
         props = _funcs.identification(strain,rot,dfgrd,rotm,force,time,vol,bg,
-                                      mbginv,bccte,bcact,ielems,vfs,nn,ne,npe,
-                                      dof,ndi,nshr,ntens,ncomp,nstatev,nvfs,nf,
-                                      nt,nprops,nvars,props,vars,bounds,constr,
-                                      nlgeom,symm,ivfs,algo,tests,fout)
+                                      mbginv,bcdofs,vfs,nn,ne,dof,ndi,nshr,
+                                      ntens,ncomp,nstatev,nvfs,nf,nt,nprops,
+                                      nvars,props,vars,bounds,constr,nlgeom,
+                                      test,fout,st)
 
     ###################
     # POST-PROCESSING #
     ###################
 
-    stress,statev,de33,pkstress = [None]*nt,[None]*nt,[None]*nt,[None]*nt
-    pstrain = [None]*nt
+    # Loop over tests
     for t in range(nt):
-
-        # Compute cauchy stress of best solution
-        stress[t],statev[t],de33[t] = _funcs.cauchy_stress(strain[t],rot[t],
-                                                           rotm[t],ne[t],
-                                                           dof[t],ndi[t],
-                                                           nshr[t],ntens[t],
-                                                           nstatev[t],nf[t],
-                                                           nprops,props,fout,
-                                                           voigt=0)
-
-        # Compute 1st piola-kirchhoff stress
-        pkstress[t] = _funcs.piola_kirchhoff_stress(stress[t],de33[t],dfgrd[t],
-                                                    ne[t],dof[t],nf[t],flat=0)
-
-        # Rotate strain to global csys
-        strain[t] = _funcs.rotate_tensor(strain[t],rot[t],rotm[t],ne[t],dof[t],
-                                         ndi[t],nshr[t],ntens[t],nf[t],
-                                         dir=1,voigt=0,eng=1)
-
-        # Convert plastic strain to tensor form
-        pstrain[t] = _funcs.voigt_to_tensor(statev[t][...,1:],ne[t],dof[t],
-                                            ndi[t],nshr[t],ntens[t],nf[t],
-                                            eng=1)
-
-        # Reshape virtual fields to tensor format
-        vfs[t]['e'] = _funcs.reshape_tensor(vfs[t]['e'],ne[t],dof[t],nf[t],-1,
-                                            nvfs[t])
-
-        # Export model of best solution to paraview
-        _funcs.export_paraview(coord[t],displ[t],conn[t],strain[t],vol[t],
-                               stress[t],statev[t][...,0],pstrain[t],de33[t],
-                               pkstress[t],vfs[t],dof[t],nvfs[t],nf[t],
-                               tests[t],nt,fout)
+        _funcs.post_processing(coord[t],displ[t],conn[t],strain[t],rot[t],
+                               dfgrd[t],vol[t],time[t],rotm[t],vfs[t],ne[t],
+                               dof[t],ndi[t],nshr[t],ntens[t],ncomp[t],
+                               nstatev[t],nvfs[t],nf[t],test[t],nt,nprops,
+                               props,vars,nlgeom,fout)
 
     return
 
 if __name__ == '__main__':
 
     # Clear command window
-    _funcs.clear_screen()
+    _utils.clear_screen()
 
     # Name of project
-    prjname = 'Double-Notched-2D'
+    prjname = 'Debug'
+
+    # Name of project from command line
+    if len(sys.argv) > 1:
+        prjname = sys.argv[-1]
 
     VFM(prjname)

@@ -3,7 +3,8 @@ import numpy as np
 import _funcs
 
 def stress_sensitivity(strain,rot,dfgrd,rotm,time,dx,ne,dof,ndi,nshr,ntens,
-                       ncomp,nstatev,nf,nprops,props,vars,nvfs,nlgeom,fout):
+                       ncomp,nstatev,nf,nprops,props,vars,nvfs,nlgeom,fout,
+                       flat=1):
     """
     Compute total and incremental stress sensitivity for sensivity-based virtual fields.
 
@@ -49,12 +50,14 @@ def stress_sensitivity(strain,rot,dfgrd,rotm,time,dx,ne,dof,ndi,nshr,ntens,
         Flag for small or large deformation framework (0/1).
     fout : str
         Name of output folder.
+    flat : bool
+        Flag to flatten stress sensitivities by elements and components (0/1).
 
     Returns
     -------
-    ss : (nvfs,nf,ne*ncomp) , float
+    ss : (nvfs,nf,ne*ncomp) or (nvfs,nf,ne,dof,dof) , float
         Total stress sensitivity.
-    iss : (nvfs,nf,ne*ncomp) , float
+    iss : (nvfs,nf,ne*ncomp) or (nvfs,nf,ne,dof,dof) , float
         Incremental stress sensitivity.
     """
 
@@ -72,14 +75,21 @@ def stress_sensitivity(strain,rot,dfgrd,rotm,time,dx,ne,dof,ndi,nshr,ntens,
     # Compute reference 1st piola-kirchhoff stress
     if nlgeom:
         pkstressref = _funcs.piola_kirchhoff_stress(stressref,de33,dfgrd,ne,
-                                                    dof,nf)
+                                                    dof,nf,flat)
 
     # Compute time increment
-    dtime = (time[1:] - time[:-1])[:,None,None]
+    if flat:
+        dtime = (time[1:] - time[:-1])[:,None,None]
+    else:
+        dtime = (time[1:] - time[:-1])[:,None,None,None]
 
     # Initialize stress sensitivities
-    ss = np.zeros((nvfs,nf,ne,ncomp))
-    iss = np.zeros((nvfs,nf,ne,ncomp))
+    if flat:
+        ss = np.zeros((nvfs,nf,ne,ncomp))
+        iss = np.zeros((nvfs,nf,ne,ncomp))
+    else:
+        ss = np.zeros((nvfs,nf,ne,dof,dof))
+        iss = np.zeros((nvfs,nf,ne,dof,dof))
 
     # Loop over identification variables
     for i in range(nvfs):
@@ -98,7 +108,7 @@ def stress_sensitivity(strain,rot,dfgrd,rotm,time,dx,ne,dof,ndi,nshr,ntens,
         # Compute 1st piola-kirchhoff stress
         if nlgeom:
             pkstress = _funcs.piola_kirchhoff_stress(stress,de33,dfgrd,ne,
-                                                     dof,nf)
+                                                     dof,nf,flat)
 
         # Compute total stress sensitivity
         if nlgeom:
@@ -110,7 +120,8 @@ def stress_sensitivity(strain,rot,dfgrd,rotm,time,dx,ne,dof,ndi,nshr,ntens,
         iss[i,1:] = (ss[i,1:] - ss[i,:-1]) / dtime
 
     # Flatten stress sensitivities by elements and components
-    ss = np.reshape(np.moveaxis(ss,(0,1,2,3),(0,1,3,2)),(nvfs,nf,ne*ncomp))
-    iss = np.reshape(np.moveaxis(iss,(0,1,2,3),(0,1,3,2)),(nvfs,nf,ne*ncomp))
+    if flat:
+        ss = np.reshape(np.moveaxis(ss,-1,-2),(nvfs,nf,ne*ncomp))
+        iss = np.reshape(np.moveaxis(iss,-1,-2),(nvfs,nf,ne*ncomp))
 
     return ss,iss

@@ -1,6 +1,6 @@
 import numpy as np
 
-def polar_decomposition(dfgrd,side='left'):
+def polar_decomposition(dfgrd,dof,side='left'):
     """
     Perform the polar decomposition of the deformation gradient.
 
@@ -8,6 +8,8 @@ def polar_decomposition(dfgrd,side='left'):
     ----------
     dfgrd : (nf,ne,dof,dof) , float
         Deformation gradient.
+    dof : int
+        Number of degrees of freedom.
 
     Returns
     -------
@@ -22,8 +24,6 @@ def polar_decomposition(dfgrd,side='left'):
         Number of increments.
     ne : int
         Number of elements.
-    dof : int
-        Number of degrees of freedom.
 
     See Also
     --------
@@ -33,7 +33,7 @@ def polar_decomposition(dfgrd,side='left'):
     Theory
     ------
     The deformation gradient F can be written as
-        F = VR or F = UR,
+        F = VR or F = RU,
       where V is the left-stretch tensor and U is the right-stretch
       tensor. V is the stretch tensor on the global csys and U is the
       stretch tensor on the corotational csys. This way, U can be said to be
@@ -44,15 +44,14 @@ def polar_decomposition(dfgrd,side='left'):
     # Singular value decomposition of deformation gradient
     W,S,Vh = np.linalg.svd(dfgrd,full_matrices=False)
 
-    # Rotation tensor
-    rot = W @ Vh
-
-    # Left stretch tensor
+    # Left stretch tensor V and rotation tensor R
     if side == 'left':
-        strch = (W * S[:,:,None,:]) @ np.transpose(W,(0,1,3,2))
+        strch = (W * S[...,None,:]) @ np.transpose(W,(0,1,3,2))
+        rot = np.linalg.inv(strch) @ dfgrd
 
-    # Right stretch tensor
+    # Right stretch tensor U and rotation tensor R
     elif side == 'right':
-        strch = (np.transpose(Vh,(0,1,3,2)) * S[:,:,None,:]) @ Vh
+        strch = (np.transpose(Vh,(0,1,3,2)) * S[...,None,:]) @ Vh
+        rot = dfgrd @ np.linalg.inv(strch)
 
     return rot,strch

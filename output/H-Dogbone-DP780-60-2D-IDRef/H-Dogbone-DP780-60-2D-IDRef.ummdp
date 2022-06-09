@@ -1,0 +1,23 @@
+
+    ~~~~~~~~~~~~~~~~~~ UMMDp ~~~~~~~~~~~~~~~~~~
+
+
+        >> Material Parameters
+
+            > Elasticity | 0 | Young Modulus & Poisson Ratio                     
+                . prela(1+1) =  0.204000000000E+06
+                . prela(1+2) =  0.300000000000E+00
+
+            > Yield Function | 0 | von Mises                     
+
+            > Isotropic Hardening Law | 2 | Swift                         
+                . prihd(1+1) =  0.117462111747E+04
+                . prihd(1+2) =  0.272537805553E+03
+                . prihd(1+3) =  0.135004574204E+00
+
+            > Kinematic Hardening Law | 0 | None                          
+
+            > Uncoupled Rupture Criterion | 0 | None                          
+
+    ~~~~~~~~~~~~~~~~~~ UMMDp ~~~~~~~~~~~~~~~~~~
+

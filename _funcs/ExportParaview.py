@@ -2,9 +2,12 @@ import os
 import shutil
 import meshio
 import numpy as np
+from scipy.fftpack import ss_diff
+
+import _utils
 
 def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
-                    pkstress,vfs,dof,nvfs,nf,test,nt,out,folder='output'):
+                    pkstress,vfs,ss,iss,ne,dof,nvfs,nf,test,nt,fout):
     """
     Export experimental finite element mesh to paraview file.
 
@@ -28,8 +31,14 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
         Strain in thickness direction.
     pkstress : (nf,ne,dof,dof) , float
         1st piola-kirchhoff stress.
-    vfs : {(nvfs,ne,dof,dof), (nvfs,nn,dof)} , float
-        User defined virtual fields.
+    vfs : {(nvfs,nf,ne,dof,dof), (nvfs,nf,nn,dof)} , float
+        Settings and generated virtual fields.
+    ss : (nvfs,nf,ne,dof,dof) or None , float
+        Total stress sensitivity.
+    iss : (nvfs,nf,ne,dof,dof) or None , float
+        Incremental stress sensitivity.
+    ne : int
+        Number of elements.
     dof : int
         Number of degrees of freedom.
     nvfs : int
@@ -40,16 +49,38 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
         Name of test.
     nt : int
         Number of tests.
-    out : str
+    fout : str
         Name of output folder.
-    folder : str
-        Type of export folder.
-
-    Notes
-    -----
-    ne : int
-        Number of elements.
     """
+
+    # Rearrange voigt components
+    if dof == 2:
+        stress3d = np.zeros((nf,ne,6))
+        strain3d = np.zeros((nf,ne,6))
+        pstrain3d = np.zeros((nf,ne,6))
+
+        stress3d[...,[0,1,3]] = stress
+        strain3d[...,[0,1,3]] = strain
+        pstrain3d[...,[0,1,3]] = pstrain
+
+    elif dof == 3:
+        stress3d = stress[...,[0,1,2,3,5,4]]
+        strain3d = strain[...,[0,1,2,3,5,4]]
+        pstrain3d = pstrain[...,[0,1,2,3,5,4]]
+
+    # Rearrange tensor components for paraview export
+    pkstress = _utils.rearrange_tensor(pkstress,ne,dof,nf)[0,...]
+
+    if 'sb' in list(vfs.keys()):
+        ss = _utils.rearrange_tensor(ss,ne,dof,nf,nvfs)
+        iss = _utils.rearrange_tensor(iss,ne,dof,nf,nvfs)
+
+    # Repeat user-defined virtual fields over time increments
+    if 'ud' in list(vfs.keys()):
+        vfs['e'] = np.repeat(vfs['e'],nf,1)
+
+    # Reshape virtual fields to tensor format
+    vfs['e'] = np.reshape(vfs['e'],(nvfs,nf,ne,dof,dof))
 
     # Nodes and elements connectivity
     points = coord
@@ -60,9 +91,9 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
 
     # Set output folder
     if nt > 1:
-        outF = f'{os.getcwd()}\\{folder}\\{out}\\{test}\\{test}'
+        outF = f'{os.getcwd()}\\output\\{fout}\\{test}\\{test}'
     else:
-        outF = f'{os.getcwd()}\\{folder}\\{out}\\{out}'
+        outF = f'{os.getcwd()}\\output\\{fout}\\{fout}'
 
     # Output paraview file
     with meshio.xdmf.TimeSeriesWriter(f'{outF}.xdmf') as w:
@@ -75,18 +106,23 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
                       'U': displ[f,...],
                     }
             cdata = {
-                     'LE': [strain[f,...]],
-                      'S': [stress[f,...]],
+                     'LE': [strain3d[f,...]],
+                      'S': [stress3d[f,...]],
                    'PEEQ': [peeq[f,...]],
-                     'PE': [pstrain[f,...]],
+                     'PE': [pstrain3d[f,...]],
                      'PK': [pkstress[f,...]],
                     'VOL': [vol],
                     }
 
             # Add virtual strain fields
-            if (folder == 'output'):
+            for i in range(nvfs):
+                cdata[f'VF{i+1}'] = [vfs['e'][i,f,...]]
+
+            # Add stress sensitivities
+            if 'sb' in list(vfs.keys()):
                 for i in range(nvfs):
-                    cdata[f'VF{i+1}'] = [vfs['e'][i,f,...]]
+                    cdata[f'SS{i+1}'] = [ss[i,f,...]]
+                    cdata[f'ISS{i+1}'] = [iss[i,f,...]]
 
             # Add thickness strain
             if dof == 2:
@@ -99,6 +135,6 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
     if nt > 1:
         shutil.move(f'{test}.h5',f'{outF}.h5')
     else:
-        shutil.move(f'{out}.h5',f'{outF}.h5')
+        shutil.move(f'{fout}.h5',f'{outF}.h5')
 
     return

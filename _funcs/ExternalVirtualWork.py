@@ -27,8 +27,8 @@ def external_virtual_work(force,vfs):
     """
 
     # Compute external virtual work
-    # evw = 2 * force[None] * vfs
-    evw = force[None] * vfs[...,0,:]
+    evw = 2 * force[None] * vfs
+    # evw = force[None] * vfs[...,0,:]
 
     # Sum external virtual work along dof
     evw = np.nansum(evw,2)

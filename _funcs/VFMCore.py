@@ -2,8 +2,8 @@ import numpy as np
 
 import _funcs
 
-def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
-             nvfs,nf,symm,nprops,props,nlgeom,fout):
+def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,
+             nstatev,nvfs,nf,nprops,props,nlgeom,fout):
     """
     VFM Core Function
 
@@ -21,8 +21,8 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
         Global loading force.
     vol : (ne,) , float
         Elements volume.
-    vfs : {(nvfs,ne,dof,dof), (nvfs,nn,dof)} , float
-        User defined virtual fields.
+    vfs : {(nvfs,nf,ne,dof,dof), (nvfs,nf,nn,dof)} , float
+        Settings and generated virtual fields.
     ne : int
         Number of elements.
     dof : int
@@ -39,8 +39,6 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
         Number of virtual fields.
     nf : int
         Number of increments.
-    symm : (nsymm,), int
-        List of symmetry conditions.
     nprops : int
         Number of material properties.
     props : (nprops,) , float
@@ -57,24 +55,33 @@ def vfm_core(strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
         Internal virtual work.
     evw : (nvfs,nf) , float
         External virtual work.
-    res : (nvfs*nf,) , float
+    res : (nvfs*nf) , float
         Cost function residuals for time increments and virtual fields.
     phi : float
         Cost function.
+    success : bool
+        Variable to monitor the sucess of stress reconstruction (False/True).
     """
 
     # Compute internal virtual work
-    ivw = _funcs.internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs['e'],ne,
-                                       dof,ndi,nshr,ntens,nstatev,nvfs,nf,
-                                       nprops,props,nlgeom,symm,fout)
+    ivw,success = _funcs.internal_virtual_work(strain,rot,dfgrd,rotm,vol,
+                                               vfs['e'],ne,dof,ndi,nshr,ntens,
+                                               nstatev,nvfs,nf,nprops,props,
+                                               nlgeom,fout)
 
     # Compute external virtual work
     evw = _funcs.external_virtual_work(force,vfs['u'])
 
+    # Compute scaling parameter
+    if 'sb' in list(vfs.keys()):
+        alpha = _funcs.scaling_virtual_fields(ivw,vfs['sb']['scale'],nf)
+    else:
+        alpha = np.ones((nvfs,1))
+
     # Compute residuals of increments and virtual fields
-    res = np.ravel(ivw - evw,order='F')
+    res = np.ravel(alpha * (ivw - evw),order='F')
 
     # Compute cost function
-    phi = 0.5*np.sum(res**2)
+    phi = np.sum(res**2)
 
-    return ivw,evw,res,phi
+    return ivw,evw,phi,success

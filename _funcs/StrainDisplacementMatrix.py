@@ -2,7 +2,7 @@ import numpy as np
 
 import _funcs
 
-def strain_displacement(coord,conn,bcfix,nn,ne,npe,dof,ncomp,nlgeom):
+def strain_displacement(coord,conn,bcdofs,nn,ne,npe,dof,ncomp,nlgeom):
     """
     Compute the elements strain-displacement matrix.
 
@@ -12,8 +12,8 @@ def strain_displacement(coord,conn,bcfix,nn,ne,npe,dof,ncomp,nlgeom):
         Nodes reference coordinates.
     conn : (ne,npe) , int
         Elements connectivity.
-    bcfix : (nbcfix) , int
-        Fixed degrees of freedom.
+    bcdofs : {'fixed','active','parent','child'} , int
+        Boundary conditions degrees of freedom.
     ne : int
         Number of elements.
     npe : int
@@ -33,13 +33,6 @@ def strain_displacement(coord,conn,bcfix,nn,ne,npe,dof,ncomp,nlgeom):
         Global strain-displacement matrix.
     mbginv : (ne*ncomp,nn*dof) , float
         Pseudo-inverse of modified global strain-displacement matrix.
-    ielems : , int
-        Index of elements components in global strain-displacement matrix.
-
-    Notes
-    -----
-    nbcfix : int
-        Number of fixed degrees of freedom.
     """
 
     # Partial derivatives of shape functions and jacobian
@@ -97,22 +90,21 @@ def strain_displacement(coord,conn,bcfix,nn,ne,npe,dof,ncomp,nlgeom):
 
     # Assembly global strain-displacement matrix
     bg = np.zeros((ne*ncomp,nn*dof))
-    ielems = np.zeros((ne,ncomp),dtype=int)
     for i in range(ne):
 
         # Columns dof index 
         idofs = np.vstack((conn[i]*dof,conn[i]*dof+1)).T.flatten()
 
         # Rows element index
-        ielems[i] = np.array([j*ne+i for j in range(ncomp)])
+        ielems = np.array([j*ne+i for j in range(ncomp)])[:,None]
 
         # Assign element matrix to global matrix
-        bg[ielems[i][:,None],idofs] = be[i]
+        bg[ielems,idofs] = be[i]
 
     # Apply fixed boundary conditions to global strain-displacement matrix
-    mbg = np.delete(bg,bcfix,1)
+    mbg = np.delete(bg,bcdofs['fixed'],1)
 
     # Compute the pseudo-inverse of modified global strain-displacement matrix
     mbginv = np.linalg.pinv(mbg)
 
-    return bg,mbginv,ielems
+    return bg,mbginv

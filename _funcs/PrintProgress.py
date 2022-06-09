@@ -1,31 +1,77 @@
+import sys
 import numpy as np
 
 spc = ' '
 fmt = '.12e'
 
-def print_write(out,f):
+def print_write(out,flog,end='\n'):
 
-    print(out)
-    f.write(f'{out}\n')
+    print(out,end=end)
+    flog.write(f'{out}{end}')
 
     return
 
-def print_progress(it,x,bestx,phi,bestphi,nvars,nt,fout):
+def close_log_file(flog):
+
+    flog.close()
+
+def open_log_file(fout,mode='a'):
+
+    return open(f'output\{fout}\{fout}.log',mode)
+
+def print_iteration(it,fout):
+    """
+    Print and write iteration header to command window and log file.
+
+    Parameters
+    ----------
+    it : int
+        Iteration number.
+    fout : str
+        Name of output folder.
+    """
+
+    # Open log file
+    flog = open_log_file(fout)
+
+    print_write('\n',flog)
+
+    # Print iteration header
+    if it == 0:
+        ithead = f' Initial '
+        lit = -3
+    else:
+        ithead = f' Iteration {it} '
+        lit = len(str(it))
+
+    sep = '-'*len(ithead)
+
+    print_write(f'{spc*(15-lit)}{sep}',flog)
+    print_write(f'{spc*(15-lit)}{ithead}',flog)
+    if it == 0:
+        print_write(f'{spc*(15-lit)}{sep}',flog,end='')
+    else:
+        print_write(f'{spc*(15-lit)}{sep}\n',flog)
+
+    # Close log file
+    close_log_file(flog)
+
+    return
+
+def print_progress(it,feit,x,phi,nvars,nt,fout,type):
     """
     Print and write identification progress to command window and log file.
 
     Parameters
     ----------
     it : int
-        Evaluation number.
+        Iteration number.
+    feit : int
+        Current number of evaliation in iteration.
     x : (nvars,) , float
         Current iteration identification variables.
-    bestx : (nvars,) , float
-        Current best identification variables.
     phi : (nt,) , float
         Current iteratiom cost function.
-    bestphi : (nt,) , float
-        Current best cost function.
     nvars : int
         Number of identification variables.
     nt : int
@@ -34,120 +80,64 @@ def print_progress(it,x,bestx,phi,bestphi,nvars,nt,fout):
         Name of output folder.
     """
 
-    # Open log file
-    f = open(f'output\{fout}\{fout}.log','a')
+    # Open log file for read
+    flog = open_log_file(fout,mode='r+')
 
-    print_write('\n',f)
+    # Read log file contents
+    fdata = flog.readlines()
 
-    # Print evaluation header
-    ithead = f' Evaluation {it} '
-    sep = '-'*len(ithead)
-    print_write(f' {sep}',f)
-    print_write(f' {ithead}',f)
-    print_write(f' {sep}',f)
+    # Set number of lines to bring cursor up
+    if nt > 1:
+        cursor = 9 + 3 + nt
+    else:
+        cursor = 9
 
-    # Print information header
-    infohead = f'{spc*19} Current {spc*16} Best'
-    print_write(infohead,f)
+    # Write log file contents without last evaluation
+    if feit != 1 and (not (feit == 2 and it == 1)):
+
+        # Open log file for write
+        flog = open_log_file(fout,mode='w')
+
+        # Write log file contents up to cursor line
+        flog.writelines(fdata[:-cursor])
+
+    # Open log file for append
+    flog = open_log_file(fout,mode='a')
+
+    # Print current number of evaluations in iteration
+    if it > 0:
+        lfeit = len(str(feit))
+        feithead = f'  Evaluations {spc*(13-lfeit)}{feit}'
+        print_write(feithead,flog,end='')
 
     # Print variables
-    varhead = f'  X\n'
-    print_write(varhead,f)
+    varhead = f'\n\n  Variables\n'
+    print_write(varhead,flog)
     for i in range(nvars):
         vl = len(str(i+1))
-        var = f' {i+1}{spc*(5+vl)}{x[i]:{fmt}}{spc*4}{bestx[i]:{fmt}}'
-        print_write(f' {var}',f)
+        var = f' {i+1}{spc*(5+vl)}{x[i]:{fmt}}'
+        print_write(f' {var}',flog)
 
     # Print cost function
     if nt > 1:
         costhead = f'\n  Cost\n'
-        print_write(costhead,f)
+        print_write(costhead,flog)
         for i in range(nt):
             cl = len(str(i+1))
-            cost = f' {i+1}{spc*(5+cl)}{phi[i]:{fmt}}{spc*4}{bestphi[i]:{fmt}}'
-            print_write(f' {cost}',f)
+            cost = f' {i+1}{spc*(5+cl)}{phi[i]:{fmt}}'
+            print_write(f' {cost}',flog)
 
-        cost = f'\n  Total  {np.sum(phi):{fmt}}{spc*4}{np.sum(bestphi):{fmt}}'
-        print_write(f' {cost}',f)
+        cost = f'\n  Total  {np.sum(phi):{fmt}}'
+        print_write(f' {cost}',flog)
     else:
-        costhead = f'\n  Cost{spc*3}{np.sum(phi):{fmt}}{spc*4}{np.sum(bestphi):{fmt}}'
-        print_write(costhead,f)
+        costhead = f'\n  Cost{spc*3}{np.sum(phi):{fmt}}'
+        print_write(costhead,flog)
+
+    # Move console cursor to evaluations line during iteration
+    if (it > 0) and (type == 'fe'):
+        sys.stdout.write("\033[F"*cursor)
 
     # Close log file
-    f.close()
-
-    return
-
-def print_result(nit,bestx,bestphi,tmsg,nvars,nt,fout):
-    """
-    Print and write identification result to command window and log file.
-
-    Parameters
-    ----------
-    nit : int
-        Number of evaluations.
-    bestx : (nvars,) , float
-        Final best identification variables.
-    bestphi : (nt,) , float
-        Final best cost function.
-    tmsg : str
-        Algorithm termination message.
-    nvars : int
-        Number of identification variables.
-    nt : int
-        Number of tests.
-    fout : str
-        Name of output folder.
-    """
-
-    # Open log file
-    f = open(f'output\{fout}\{fout}.log','a')
-
-    print_write('\n',f)
-
-    # Print summary header
-    ithead = f' Summary '
-    sep = '-'*len(ithead)
-    print_write(f' {sep}',f)
-    print_write(f' {ithead}',f)
-    print_write(f' {sep}',f)
-
-    # Print termination message
-    tmsg = f'\n  Termination : {tmsg}'
-    print_write(tmsg,f)
-
-    # Print number of evaluations
-    evalhead = f'  Evaluations : {nit}'
-    print_write(evalhead,f)
-
-    # Print information header
-    infohead = f'\n{spc*22} Best'
-    print_write(infohead,f)
-
-    # Print variables
-    varhead = f'  X\n'
-    print_write(varhead,f)
-    for i in range(nvars):
-        vl = len(str(i+1))
-        var = f' {i+1}{spc*(5+vl)}{bestx[i]:{fmt}}'
-        print_write(f' {var}',f)
-
-    # Print cost function
-    if nt > 1:
-        costhead = f'\n  Cost\n'
-        print_write(costhead,f)
-        for i in range(nt):
-            cl = len(str(i+1))
-            cost = f' {i+1}{spc*(5+cl)}{bestphi[i]:{fmt}}'
-            print_write(f' {cost}',f)
-
-        cost = f'\n  Total  {np.sum(bestphi):{fmt}}'
-        print_write(f' {cost}',f)
-    else:
-        costhead = f'\n  Cost{spc*3}{np.sum(bestphi):{fmt}}'
-        print_write(costhead,f)
-
-    # Close log file
-    f.close()
+    close_log_file(flog)
 
     return

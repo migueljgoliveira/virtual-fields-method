@@ -1,7 +1,10 @@
+import numpy as np
+
 import _funcs
+import _utils
 
 def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,nprops,
-                  props,fout,voigt=0):
+                  props,fout,voigt=False):
     """
     Compute the cauchy stress in local csys using the backward-Euler with an elastic predictor and plastic corrector.
 
@@ -34,28 +37,40 @@ def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,nprops,
     fout : str
         Name of output folder.
     voigt : bool
-        Flag for voigt notation (0/1).
+        Flag for voigt notation (False/True).
 
     Returns
     -------
     stress : (nf,ne,dof,dof) , float
         Cauchy stress in global csys.
     statev : (nf,ne,ntens+1) , float
-        Internal state variables in global csys.
+        Internal state variables in local csys.
     de33 : (nf,ne) , float
-        Strain in thickness direction.
+        Strain in thickness direction (plane stress).
+    success : bool
+        Variable to monitor the sucess of stress reconstruction (False/True).
     """
 
+    # Initialize f2py external stop function
+    _funcs.ummdp_vfm.f2py_stop = _utils.f2py_stop
+
     # Stress integration in corotational material csys
-    stress,statev,de33  = _funcs.ummdp(strain,ne,ndi,nshr,ntens,nstatev,
-                                       props,nprops,nf,fout)
+    try:
+        stress,statev,de33 = _funcs.ummdp_vfm.ummdp_vfm(strain,ne,ndi,nshr,
+                                                        ntens,nstatev,props,
+                                                        nprops,nf,fout)
+
+        success = True
+
+    except Exception:
+        stress = np.zeros((nf,ne,ntens))
+        statev = np.zeros((nf,ne,ntens+1))
+        de33 = np.zeros((nf,ne))
+
+        success = False
 
     # Rotate cauchy stress to global csys and convert to tensor form
-    stress = _funcs.rotate_tensor(stress,rot,rotm,ne,dof,ndi,nshr,ntens,nf,
+    stress = _utils.rotate_tensor(stress,rot,rotm,ne,dof,ndi,ntens,nf,
                                   dir=1,voigt=voigt)
 
-    # Rotate statev to global csys
-    statev[...,1:] = _funcs.rotate_tensor(statev[...,1:],rot,rotm,ne,dof,ndi,
-                                          nshr,ntens,nf,dir=1,voigt=1,eng=1)
-
-    return stress,statev,de33
+    return stress,statev,de33,success

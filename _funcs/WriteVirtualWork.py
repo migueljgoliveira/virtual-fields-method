@@ -23,7 +23,6 @@ def write_virtual_work(ivw,evw,test,nvfs,nf,nt,fout):
     """
 
     # Set output directory
-
     if nt > 1:
         dir = f'output\{fout}\{test}'
         fnameivw = f'{dir}\{test}_IVW.csv'

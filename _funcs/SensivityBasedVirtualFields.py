@@ -2,10 +2,9 @@ import numpy as np
 
 import _funcs
 
-def sensivity_based_virtual_fields(strain,rot,dfgrd,rotm,time,bg,mbginv,ielems,
-                                   bccte,bcact,nn,ne,dof,ndi,nshr,ntens,ncomp,
-                                   nstatev,nvfs,nf,nprops,props,
-                                   vars,ivfs,nlgeom,fout):
+def sensivity_based_virtual_fields(strain,rot,dfgrd,rotm,time,bg,mbginv,bcdofs,
+                                   vfs,nn,ne,dof,ndi,nshr,ntens,ncomp,nstatev,
+                                   nvfs,nf,nprops,props,vars,nlgeom,fout):
     """
     Compute the sensitivity-based virtual fields.
 
@@ -17,18 +16,16 @@ def sensivity_based_virtual_fields(strain,rot,dfgrd,rotm,time,bg,mbginv,ielems,
         Deformation gradient.
     rotm : (dof,dof) , float
         Material rotation tensor.
-    time : (nf,) , float
+    time : (nf) , float
         Time increments.
     bg : (ne*ncomp,nn*dof) , float
         Global strain-displacement matrix.
     mbginv : (ne*ncomp,nn*dof) , float
         Pseudo-inverse of modified global strain-displacement matrix.
-    ielems : , int
-        Index of elements components in global strain-displacement matrix.
-    bccte : (4,()) , int
-        Contant degrees of freedom per edge.
-    bcact : (nbcact) , int
-        Active degrees of freedom.
+    bcdofs : {'fixed','active','parent','child'} , int
+        Boundary conditions degrees of freedom.
+    vfs : 
+        Settings and generated virtual fields.
     nn : int
         Number of nodes.
     ne : int
@@ -55,8 +52,6 @@ def sensivity_based_virtual_fields(strain,rot,dfgrd,rotm,time,bg,mbginv,ielems,
         Material properties.
     vars : (nprops,) , bool
         Flags for identification variables.
-    ivfs : -------------
-        Settings for sensitivity-based virtual fields. 
     nlgeom : bool
         Flag for small or large deformation framework (0/1).
     fout : str
@@ -69,35 +64,34 @@ def sensivity_based_virtual_fields(strain,rot,dfgrd,rotm,time,bg,mbginv,ielems,
     """
 
     # Compute stress sensitivities
-    ss,iss = _funcs.stress_sensitivity(strain,rot,dfgrd,rotm,time,ivfs['dx'],
-                                       ne,dof,ndi,nshr,ntens,ncomp,nstatev,nf,
-                                       nprops,props,vars,nvfs,nlgeom,fout)
+    ss,iss = _funcs.stress_sensitivity(strain,rot,dfgrd,rotm,time,
+                                       vfs['sb']['dx'],ne,dof, ndi,nshr,ntens,
+                                       ncomp,nstatev,nf,nprops,props,vars,nvfs,
+                                       nlgeom,fout)
 
     # Compute virtual displacements
     vu = np.zeros((nvfs,nf,nn*dof,1))
-    vu[...,bcact,:] = mbginv[None,None] @ ss[...,None]
+    vu[...,bcdofs['active'],:] = mbginv[None,None] @ iss[...,None]
 
     # Apply constant boundary conditions to virtual displacements
     for i in range(4):
         for j in range(dof):
-            if len(bccte[i][j]) > 0:
-                avgvu = np.mean(vu[...,bccte[i][j],:],2)
-                vu[...,bccte[i][j],:] = avgvu[...,None,:]
+            if len(bcdofs['parent'][i][j]) > 0:
+                mastervu = vu[...,bcdofs['parent'][i][j][0],:]
+                vu[...,bcdofs['child'][i][j],0] = mastervu
 
     # Compute virtual strains
     ve = bg[None,None] @ vu
-
-    # Create variable to store virtual fields
-    vfs = {'e': None,'u': None}
 
     # Reshape virtual displacements to virtual fields format
     vfs['u'] = np.zeros((nvfs,nf,4,dof))
     for i in range(4):
         for j in range(dof):
-            if len(bccte[i][j]) > 0:
-                vfs['u'][...,i,j] = np.mean(vu[:,:,bccte[i][j],:],2)[...,0]
+            if len(bcdofs['parent'][i][j]) > 0:
+                vfs['u'][...,i,j] = vu[...,bcdofs['parent'][i][j][0],0]
 
     # Reshape virtual strains to virtual fields format
+    ielems = np.arange(0,ne*dof*dof).reshape(dof*dof,ne).T
     vfs['e'] = ve[...,ielems,:][...,0]
 
     return vfs

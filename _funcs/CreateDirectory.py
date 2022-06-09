@@ -1,7 +1,7 @@
 import os
 import shutil
 
-def create_directory(prjname,fout,tests,nt):
+def create_directory(prjname,fout,test,nt):
     """
     Create directory to export output files of current project.
 
@@ -11,14 +11,14 @@ def create_directory(prjname,fout,tests,nt):
         Name of current project.
     fout : str
         Name of output folder.
-    tests : (nt,) , str
+    test : (nt,) , str
         List of tests name.
     nt : int
         Number of tests.
 
     Returns
     -------
-    dir : str
+    dirout : str
         Directory of project to export output files.
     """
 
@@ -41,16 +41,10 @@ def create_directory(prjname,fout,tests,nt):
     # Create tests output folders
     if nt > 1:
         for t in range(nt):
-            os.mkdir(f'{dirout}\{tests[t]}')
+            os.mkdir(f'{dirout}\{test[t]}')
 
     # Copy options file to output folder
     dirin = f'{cwd}\input\{prjname}'
     shutil.copy2(f'{dirin}\{prjname}.vfm',f'{dirout}\{prjname}.vfm')
 
-    # Create log file
-    with open(f'{dirout}\{fout}.log','w') as f:
-        head = f'\n{" "*7}~~~~~~ VIRTUAL FIELDS METHOD ~~~~~~\n'
-        print(head)
-        f.write(head)
-
-    return
+    return dirout

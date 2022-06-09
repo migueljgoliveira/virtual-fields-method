@@ -25,9 +25,9 @@ def el_hex8r(coord):
     """
 
     # Partial derivatives of shape function wrt natural coordinates.
-    dNdnr = np.array([[-1, 1, 1,-1,-1, 1, 1, 1],
-                      [-1,-1,-1,-1, 1, 1, 1, 1],
-                      [ 1, 1,-1,-1, 1, 1,-1,-1]])/8
+    dNdnr = np.array([[ -1,  1,  1, -1, -1,  1,  1, -1 ],
+                      [ -1, -1, -1, -1,  1,  1,  1,  1 ],
+                      [  1,  1, -1, -1,  1,  1, -1, -1 ]]) / 8
 
     # Jacobian matrix --> partial derivatives of cartesian wrt natural
     jac = dNdnr @ coord

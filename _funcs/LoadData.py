@@ -1,9 +1,8 @@
-import os
 import numpy as np
 
 import _funcs
 
-def load_data(prjnm,tests,symm,nt):
+def load_data(prjnm,test,nt):
     """
     Load coordinates, connectivity, and displacements.
 
@@ -11,10 +10,8 @@ def load_data(prjnm,tests,symm,nt):
     ----------
     prjname : str
         Name of current project.
-    tests : object
+    test : object
         List of tests name.
-    symm : (nt,(nsymm,)), int
-        List of symmetry conditions.
     nt : int
         Number of tests.
 
@@ -32,7 +29,7 @@ def load_data(prjnm,tests,symm,nt):
         Global loading force.
     time : (nt,(nf,)) , float
         Time increments.
-    thick : (nt,) , float
+    thk : (nt,) , float
         Specimen initial thickness.
     ori : (nt,) , float
         Material orientation angle in degrees.
@@ -48,7 +45,7 @@ def load_data(prjnm,tests,symm,nt):
     force = [None]*nt
     time = [None]*nt
     centr = [None]*nt
-    thick = np.zeros(nt)
+    thk = np.zeros(nt)
     ori = np.zeros(nt)
 
     # Set project directory
@@ -57,20 +54,25 @@ def load_data(prjnm,tests,symm,nt):
     for t in range(nt):
 
         # Set test name
-        tnm = tests[t]
+        tnm = test[t]
 
-        # Set test directory
-        basedir = f'{dir}\{tnm}'
+        # Set files test directory
         filesdir = f'{dir}\{tnm}\{tnm}'
 
-        # Get number of increments
-        files = os.listdir(basedir)
-        for file in files:
-            try:
-                if file.split('_')[-2] == 'U':
-                    nf[t] = nf[t] + 1
-            except:
-                pass
+        # Load time increments
+        filename = f'{filesdir}_Time.csv'
+        time[t] = np.loadtxt(filename,skiprows=1,delimiter=';')
+
+        # Get number of time increments
+        nf[t] = len(time[t])
+
+        # Load global forces
+        filename = f'{filesdir}_Force.csv'
+        force[t] = np.loadtxt(filename,skiprows=1,delimiter=';')
+
+        # Check if force increments is equal to time increments
+        if len(force[t]) != nf[t]:
+            _funcs.error(f'number of force increments is different from time increments in test {t+1}.')
 
         # Load nodal coordinates
         filename = f'{filesdir}_Nodes.csv'
@@ -79,24 +81,7 @@ def load_data(prjnm,tests,symm,nt):
         # Translate xyz origin to center of specimen
         lmin = np.nanmin(coord[t],0)
         lmax = np.nanmax(coord[t],0)
-
-        # No symmetries
-        if symm[t] is None:
-            coord[t] = coord[t] - (lmin + lmax)/2
-        else:
-            # Symmetry condition in x-direction
-            if (0 in symm[t]) and (1 not in symm[t]):
-                coord[t,0] = coord[t,0] - lmin[0]
-                coord[t,1] = coord[t,1] - (lmin[1] + lmax[1])/2
-
-            # Symmetry condition in y-direction
-            elif (0 not in symm[t]) and (1 in symm[t]):
-                coord[t,0] = coord[t,0] - (lmin[0] + lmax[0])/2
-                coord[t,1] = coord[t,1] - lmin[1]
-
-            # Symmetry condition in x- and y-directions
-            elif (0 in symm[t]) and (1 in symm[t]):
-                coord[t] = coord[t] - lmin
+        coord[t] = coord[t] - (lmin + lmax)/2
 
         # Load elements connectivity
         filename = f'{filesdir}_Elements.csv'
@@ -106,23 +91,11 @@ def load_data(prjnm,tests,symm,nt):
         displ[t] = np.zeros((nf[t],coord[t].shape[0],coord[t].shape[1]))
         for f in range(nf[t]):
             filename = f'{filesdir}_U_{f}.csv'
-            displ[t][f,:] = np.loadtxt(filename,skiprows=1,delimiter=';')[:,1:]
-
-        # Load global forces
-        filename = f'{filesdir}_Force.csv'
-        force[t] = np.loadtxt(filename,skiprows=1,delimiter=';')
-
-        # Load time increments
-        filename = f'{filesdir}_Time.csv'
-        time[t] = np.loadtxt(filename,skiprows=1,delimiter=';')
-
-        # Check if force increments is equal to displacement increments
-        if len(force[t]) != nf[t]:
-            _funcs.error(f'number of force increments is different from displacement increments in test {t+1}.')
+            displ[t][f] = np.loadtxt(filename,skiprows=1,delimiter=';')[:,1:]
 
         # Load specimen thickness
         filename = f'{filesdir}_Thickness.csv'
-        thick[t] = float(np.loadtxt(filename,skiprows=1,delimiter=';'))
+        thk[t] = float(np.loadtxt(filename,skiprows=1,delimiter=';'))
 
         # Load material orientation
         filename = f'{filesdir}_Orientation.csv'
@@ -131,4 +104,4 @@ def load_data(prjnm,tests,symm,nt):
         # Compute elements centroid
         centr[t] = np.mean(coord[t][conn[t]],1)
 
-    return coord,displ,conn,centr,force,time,thick,ori,nf
+    return coord,displ,conn,centr,force,time,thk,ori,nf

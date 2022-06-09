@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-def write_progress(it,x,phi,nvars,nt,fout,best=''):
+def write_progress(it,feit,x,phi,nvars,nt,fout):
     """
     Write identification progress of variables and cost function. 
 
@@ -9,6 +9,8 @@ def write_progress(it,x,phi,nvars,nt,fout,best=''):
     ----------
     it : int
         Iteration number.
+    feit : int
+        Total number of evaluations in iteration.
     x : (nvars,) , float
         Current or best identification variables.
     phi : (nt,) , float
@@ -23,7 +25,7 @@ def write_progress(it,x,phi,nvars,nt,fout,best=''):
 
     # Set output directory
     dir = f'output\{fout}'
-    fname = f'{dir}\{fout}_Progress{best}.csv'
+    fname = f'{dir}\{fout}_Progress.csv'
 
     # Generate formmatter
     if nt > 1:
@@ -31,12 +33,13 @@ def write_progress(it,x,phi,nvars,nt,fout,best=''):
     else:
         fmt = ['%.12e']*(nvars+1)
     fmt.insert(0,'%d')
+    fmt.insert(0,'%d')
 
     # If first evaluation create file
     if not os.path.exists(fname):
 
         # Generate header
-        head = f'eval;phi'
+        head = f'it;fe;phi'
 
         if nt > 1:
             for i in range(nt):
@@ -56,10 +59,13 @@ def write_progress(it,x,phi,nvars,nt,fout,best=''):
         else:
             lout = np.insert(x,0,phi)
 
-        # Insert evaluation number
+        # Insert total number of evaluations in iteration
+        lout = np.insert(lout,0,feit)
+
+        # Insert iteration number
         lout = np.insert(lout,0,it)
 
-        # Write header and first evaluation result
+        # Write header and first iteration result
         np.savetxt(fname,[lout],header=head,fmt=fmt,delimiter=';',comments='')
 
     # Append subsequent evaluations
@@ -72,10 +78,13 @@ def write_progress(it,x,phi,nvars,nt,fout,best=''):
         else:
             lout = np.insert(x,0,phi)
 
-        # Insert evaluation number
+        # Insert total number of evaluations in iteration
+        lout = np.insert(lout,0,feit)
+
+        # Insert iteration number
         lout = np.insert(lout,0,it)
 
-        # Append evaluation result
+        # Append iteration result
         with open(fname,'a') as f:
             np.savetxt(f,[lout],fmt=fmt,delimiter=';')
 

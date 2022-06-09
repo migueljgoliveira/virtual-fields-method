@@ -1,167 +1,116 @@
+import warnings
 import numpy as np
-from scipy.optimize import least_squares, differential_evolution
+from functools import partial
+from scipy.optimize import minimize
 
 import _funcs
 
-def identication_main(x,strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bccte,
-                      bcact,ielems,vfs,nn,ne,npe,dof,ndi,nshr,ntens,ncomp,
-                      nstatev,nvfs,nf,nt,nprops,props,vars,nvars,bounds,constr,
-                      nlgeom,symm,ivfs,algo,tests,fout,refvars):
-    """
-    Perform identification of material properties. 
+warnings.filterwarnings('ignore')
 
-    Parameters
-    ----------
-    x : (nvars,) , float
-        Updated identification properties.
-    strain : (nt, (nf,ne,ntens) ) , float
-        Strain in corotational material csys.
-    rot : (nt, (nf,ne,dof,dof) ) , float
-        Rotation tensor.
-    dfgrd : (nt, (nf,ne,dof,dof) ) , float
-        Deformation gradient.
-    rotm : (nt, (dof,dof) ) , float
-        Material rotation tensor.
-    force : (nt, (nf,dof) ) , float
-        Global loading force.
-    time : (nt, (nf,) ) , float
-        Time increments.
-    vol : (nt,(ne,)) , float
-        Elements volume.
-    bg : (nt, (ne*ncomp,nn*dof) ) , float
-        Global strain-displacement matrix.
-    mbginv : (nt, (ne*ncomp,nn*dof) ) , float
-        Pseudo-inverse of modified global strain-displacement matrix.
-    ielems : (nt, (ne,npe) ) , int
-        Index of elements components in global strain-displacement matrix.
-    bccte : (nt, (4,()) ) , int
-        Contant degrees of freedom per edge.
-    bcact : (nt, (nbcact) ) , int
-        Active degrees of freedom.
-    vfs : (nt, {(nvfs,ne,dof*dof), (nvfs,nn,dof)} ) , float
-        Generated virtual fields.
-    nn : (nt,) , int
-        Number of nodes.
-    ne : (nt,) , int
-        Number of elements.
-    npe : (nt,) , int
-        Number of nodes per element.
-    dof : (nt,) , int
-        Number of degrees of freedom.
-    ndi : (nt,) , int
-        Number of normal tensor components.
-    nshr : (nt,) , int
-        Number of shear tensor components.
-    ntens : (nt,) , int
-        Number of tensor components.
-    ncomp : (nt,) , int
-        Number of tensor components depending on deformation formulation.
-    nstatev : (nt,) , int
-        Number of internal state variables.
-    nvfs : (nt,) , int
-        Number of virtual fields.
-    nf : (nt,) , int
-        Number of increments.
-    nt : int
-        Number of tests.
-    nprops : int
-        Number of material properties.
-    props : (nprops,) , float
-        Updated material properties.
-    vars : (nprops,) , bool
-        Flags for identification variables.
-    nvars : int
-        Number of identification variables.
-    bounds : (nvars,2) , float
-        Boundaries for identification variables.
-    constr : (nprops,2) , float
-        Constraints for material properties.
-    refvars : (nvars,) , float
-        Initial identification variables.
-    nlgeom : bool
-        Flag for small or large deformation framework (0/1).
-    symm : (nt, (nsymm,) ), int
-        List of symmetry conditions.
-    ivfs : (nt, {'ud' or 'sb'} ) , int
-        List of selected virtual fields.
-    algo : str
-        Name of optimization algorithm.
-    tests : (nt,) , str
-        List of tests name.
-    fout : str
-        Name of output folder.
-    bestx : None or (nvars,) , float
-        Current best identification variables.
-    bestphi : None or float
-        Current best cost function.
+def fcn_callback(x,strain,rot,dfgrd,rotm,time,bg,mbginv,bcdofs,vfs,nn,ne,dof,
+                 ndi,nshr,ntens,ncomp,nstatev,nvfs,nf,nt,nprops,props,vars,
+                 nvars,constr,nlgeom,test,fout):
 
-    Returns
-    -------
-    props : (nprops,) , float
-        Final solution of material properties.
-    """
-
-    # Declare variables for best solution
-    global it,bestx,bestphi
-
-    # Update iteration number
-    it += 1
-
-    # Transform identification variables to apply boundaries
-    if (algo in ['lm']) and (not np.isnan(bounds).any()):
-        x = _funcs.transform_properties(x,refvars,bounds)
-
-    # De-normalise identification variables and update material properties
-    x = _funcs.normalise_properties(x,refvars,bounds,algo,-1)
+    # Declare global variables
+    global it,feit,itphi,ivw,evw
 
     # Update material properties with current solution
     props[vars] = x
 
     # Apply user-defined properties constraints
-    if len(constr) > 0:
-        props = _funcs.properties_constraints(props,constr)
+    props = _funcs.properties_constraints(props,constr)
 
-    # Perform vfm simulation with current solution
-    _,_,res,phi = _funcs.simulation(strain,rot,dfgrd,rotm,force,time,vol,bg,
-                                    mbginv,bccte,bcact,ielems,vfs,nn,ne,npe,
-                                    dof,ndi,nshr,ntens,ncomp,nstatev,nvfs,nf,
-                                    nt,nprops,props,vars,nlgeom,symm,ivfs,
-                                    tests,fout)
+    # Update sensivity-based virtual fields
+    for t in range(nt):
+        if 'sb' in list(vfs[t].keys()):
+            vfs[t] = _funcs.sensivity_based_virtual_fields(strain[t],rot[t],
+                                                           dfgrd[t],rotm[t],
+                                                           time[t],bg[t],
+                                                           mbginv[t],bcdofs[t],
+                                                           vfs[t],nn[t],ne[t],
+                                                           dof[t],ndi[t],
+                                                           nshr[t],ntens[t],
+                                                           ncomp[t],nstatev[t],
+                                                           nvfs[t],nf[t],
+                                                           nprops,props,vars,
+                                                           nlgeom,fout)
 
-    # Concatenates total vector of residuals
-    resT = np.concatenate(res)
-
-    # Compute total cost function
-    phiT = np.sum(phi)
-
-    # Save best solution
-    if (bestphi == None) or (phiT < np.sum(bestphi)):
-        bestx = x
-        bestphi = phi
+    # Write virtual work of current solution
+    for t in range(nt):
+        _funcs.write_virtual_work(ivw[t],evw[t],test[t],nvfs[t],nf[t],nt,fout)
 
     # Print variables and total cost function progress to screen and log file
-    _funcs.print_progress(it,x,bestx,phi,bestphi,nvars,nt,fout)
+    _funcs.print_progress(it,feit,x,itphi,nvars,nt,fout,'it')
 
     # Write variables and cost function progress to file
-    _funcs.write_progress(it,x,phi,nvars,nt,fout)
-    _funcs.write_progress(it,bestx,bestphi,nvars,nt,fout,'Best')
+    _funcs.write_progress(it,feit,x,itphi,nvars,nt,fout)
 
-    # _funcs.plot_progress(it,bestphi)
+    # Update iteration number
+    it += 1
 
-    # Return vector of residuals
-    if algo in ['lm']:
-        return resT
+    # Reset function evaluations per iteration counter
+    feit = 0
 
-    # Return scalar cost function
-    elif algo in ['de']:
-        return phiT
+    return
 
-def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bccte,bcact,
-                   ielems,vfs,nn,ne,npe,dof,ndi,nshr,ntens,ncomp,nstatev,nvfs,
-                   nf,nt,nprops,nvars,props,vars,bounds,constr,nlgeom,symm,
-                   ivfs,algo,tests,fout):
+def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
+        nvfs,nf,nt,nprops,props,vars,nvars,constr,nlgeom,fout):
+
+    # Declare global variables
+    global fe,feit,it,itphi,ivw,evw
+
+    # Print iteration header to log file
+    if feit == 0 or ((feit == 1) and (it == 1)):
+        _funcs.print_iteration(it,fout)
+
+    # Update number of total evaluations
+    fe += 1
+
+    # Update current number of evaluations in iteration
+    feit += 1
+
+    # Update material properties with current solution
+    props[vars] = x
+
+    # Apply user-defined properties constraints
+    props = _funcs.properties_constraints(props,constr)
+
+    # Check validity of current solution
+    valid = ~np.isnan(props[vars]).any()
+
+    # Perform vfm simulation with current solution
+    if valid:
+        ivw,evw,itphi,success = _funcs.simulation(strain,rot,dfgrd,rotm,force,
+                                                  vol,vfs,ne,dof,ndi,nshr,
+                                                  ntens,nstatev,nvfs,nf,nt,
+                                                  nprops,props,nlgeom,fout)
+
+    # If solution is not valid or stress reconstruction fails return nan
+    if (not valid) or (not success): itphi = np.nan
+
+    # # Update cost function with correction factor
+    # if 'sb' in list(vfs[t].keys()):
+    #     phi,cf = _funcs.correction_factor(res,allphi[-2],cf,it)
+
+    # Compute total cost function
+    phi = np.sum(itphi)
+
+    # Print variables and cost function progress to screen and log file
+    _funcs.print_progress(it,feit,x,itphi,nvars,nt,fout,'fe')
+
+    # Write variables and cost function progress to file
+    _funcs.write_progress(it,feit,x,itphi,nvars,nt,fout)
+
+    # Update number of iteration after initial evaluation
+    if it == 0: it += 1
+
+    return phi
+
+def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
+                   nn,ne,dof,ndi,nshr,ntens,ncomp,nstatev,nvfs,nf,nt,nprops,
+                   nvars,props,vars,bounds,constr,nlgeom,test,fout,st):
     """
-    Perform identification of material properties. 
+    Perform identification of material properties.
 
     Parameters
     ----------
@@ -183,43 +132,37 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bccte,bcact,
         Global strain-displacement matrix.
     mbginv : (nt, (ne*ncomp,nn*dof) ) , float
         Pseudo-inverse of modified global strain-displacement matrix.
-    ielems : (nt, (ne,npe) ) , int
-        Index of elements components in global strain-displacement matrix.
-    bccte : (nt, (4,()) ) , int
-        Contant degrees of freedom per edge.
-    bcact : (nt, (nbcact) ) , int
-        Active degrees of freedom.
+    bcdofs : {'fixed','active','parent','child'} , int
+        Boundary conditions degrees of freedom.
     vfs : (nt, {(nvfs,ne,dof*dof), (nvfs,nn,dof)} ) , float
-        Generated virtual fields.
-    nn : (nt,) , int
+        Settings and generated virtual fields.
+    nn : (nt) , int
         Number of nodes.
-    ne : (nt,) , int
+    ne : (nt) , int
         Number of elements.
-    npe : (nt,) , int
-        Number of nodes per element.
-    dof : (nt,) , int
+    dof : (nt) , int
         Number of degrees of freedom.
-    ndi : (nt,) , int
+    ndi : (nt) , int
         Number of normal tensor components.
-    nshr : (nt,) , int
+    nshr : (nt) , int
         Number of shear tensor components.
-    ntens : (nt,) , int
+    ntens : (nt) , int
         Number of tensor components.
-    ncomp : (nt,) , int
+    ncomp : (nt) , int
         Number of tensor components depending on deformation formulation.
-    nstatev : (nt,) , int
+    nstatev : (nt) , int
         Number of internal state variables.
-    nvfs : (nt,) , int
+    nvfs : (nt) , int
         Number of virtual fields.
-    nf : (nt,) , int
+    nf : (nt) , int
         Number of increments.
     nt : int
         Number of tests.
     nprops : int
         Number of material properties.
-    props : (nprops,) , float
+    props : (nprops) , float
         Updated material properties.
-    vars : (nprops,) , bool
+    vars : (nprops) , bool
         Flags for identification variables.
     nvars : int
         Number of identification variables.
@@ -227,20 +170,14 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bccte,bcact,
         Boundaries for identification variables.
     constr : (nprops,2) , float
         Constraints for material properties.
-    refvars : (nvars,) , float
-        Initial identification variables.
     nlgeom : bool
         Flag for small or large deformation framework (0/1).
-    symm : (nt, (nsymm,) ), int
-        List of symmetry conditions.
-    ivfs : (nt, {'ud' or 'sb'} ) , int
-        List of selected virtual fields.
-    algo : str
-        Name of optimization algorithm.
-    tests : (nt,) , str
+    test : (nt) , str
         List of tests name.
     fout : str
         Name of output folder.
+    st : float
+        Start time in seconds since epoch.
 
     Returns
     -------
@@ -248,58 +185,55 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bccte,bcact,
         Final solution of material properties.
     """
 
-    # Initialize global variables to save best solution
-    global it,bestx,bestphi
-    it,bestx,bestphi = 0,None,None
+    # Declare global variables
+    global fe,feit,it,itphi
 
-    # Set identification variables
-    refvars = props[vars]
-
-    # Set boundaries of identification variables
-    bounds = bounds[vars]
-
-    # Normalise identification properties
-    x = _funcs.normalise_properties(refvars,refvars,bounds,algo,1)
+    # Initialize global variables
+    fe,it,feit = 0,0,0
+    itphi = None
 
     # Set arguments for identification function
-    args = (strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bccte,bcact,ielems,
-            vfs,nn,ne,npe,dof,ndi,nshr,ntens,ncomp,nstatev,nvfs,nf,nt,nprops,
-            props,vars,nvars,bounds,constr,nlgeom,symm,ivfs,algo,tests,fout,
-            refvars)
+    args = (strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
+            nvfs,nf,nt,nprops,props,vars,nvars,constr,nlgeom,fout)
+
+    # Generate wrapper for callback function
+    fcncb = partial(fcn_callback,strain=strain,rot=rot,dfgrd=dfgrd,rotm=rotm,
+                                 time=time,bg=bg,mbginv=mbginv,bcdofs=bcdofs,
+                                 vfs=vfs,nn=nn,ne=ne,dof=dof,ndi=ndi,nshr=nshr,
+                                 ntens=ntens,ncomp=ncomp,nstatev=nstatev,
+                                 nvfs=nvfs,nf=nf,nt=nt,nprops=nprops,
+                                 props=props,vars=vars,nvars=nvars,
+                                 constr=constr,nlgeom=nlgeom,test=test,
+                                 fout=fout)
 
     # Start identification algorithm
-    if algo == 'lm':
-        result = least_squares(identication_main,
-                               args = args,
-                               x0 = x,
-                               method = 'lm',
-                               ftol = 1e-8, xtol = 1e-8, gtol = 1e-8,
-                               x_scale = 'jac',
-                               max_nfev = int(1e8),
-                               diff_step = 1e-8)
-
-    elif algo == 'de':
-        result = differential_evolution(identication_main,
-                                        args = args,
-                                        bounds =  np.tile([0,1],(nvars,1)),
-                                        tol = 1e-8, atol = 1e-8,
-                                        init = 'latinhypercube',
-                                        maxiter = int(1e8))
+    result = minimize(fcn,
+                      args = args,
+                      x0 = props[vars],
+                      method = 'TNC',
+                      jac = '2-point',
+                      bounds =  bounds[vars],
+                      tol = 1e-8,
+                      options = {
+                                 'maxiter': int(1e8),
+                                 'ftol': 1e-8,
+                                 'xtol': 1e-8,
+                                 'gtol': 1e-8,
+                                 'finite_diff_rel_step': 1e-6,
+                                },
+                      callback = fcncb,
+                      )
 
     # Get identification results
+    x = result.x
     nit = it
+    nfe = fe
     tmsg = result.message
 
     # Update material properties with best identification variables
-    props[vars] = bestx
-
-    # Run one simulation with best identification variables
-    _funcs.simulation(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bccte,
-                      bcact,ielems,vfs,nn,ne,npe,dof,ndi,nshr,ntens,ncomp,
-                      nstatev,nvfs,nf,nt,nprops,props,vars,nlgeom,symm,ivfs,
-                      tests,fout)
+    props[vars] = x
 
     # Print summary of identification results to log
-    _funcs.print_result(nit,bestx,bestphi,tmsg,nvars,nt,fout)
+    _funcs.print_result_identification(nit,nfe,x,itphi,tmsg,nvars,nt,fout,st)
 
     return props
