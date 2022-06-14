@@ -130,7 +130,7 @@ dmypy.json
 *.odb
 *.h5
 *.xdmf
-*.csv
+# *.csv
 *.cae
 *.inp
 output/
