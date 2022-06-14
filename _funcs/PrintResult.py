@@ -57,9 +57,9 @@ def print_result_identification(nit,nfev,bestx,bestphi,tmsg,nvars,nt,fout,
 
     # Set number of lines to bring cursor up
     if nt > 1:
-        cursor = 9 + 3 + nt
+        cursor = 6 + nvars + 3 + nt
     else:
-        cursor = 9
+        cursor = 6 + nvars
 
     # Move console cursor to evaluations line during iteration
     sys.stdout.write(f"\033[{cursor}B")

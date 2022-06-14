@@ -93,9 +93,9 @@ def print_progress(it,fevit,x,phi,nvars,nt,fout,dirout,type):
 
     # Set number of lines to bring cursor up
     if nt > 1:
-        cursor = 9 + 3 + nt
+        cursor = 6 + nvars + 3 + nt
     else:
-        cursor = 9
+        cursor = 6 + nvars
 
     # Write log file contents without last evaluation
     if fevit != 1 and (not (fevit == 2 and it == 1)):
