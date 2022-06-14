@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-def write_progress(it,fevit,x,phi,nvars,nt,fout):
+def write_progress(it,fevit,x,phi,nvars,nt,fout,dirout):
     """
     Write identification progress of variables and cost function. 
 
@@ -20,12 +20,13 @@ def write_progress(it,fevit,x,phi,nvars,nt,fout):
     nt : int
         Number of tests.
     fout : str
-        Name of output folder.
+        Name of output folder.~
+    dirout : str
+        Directory of project to export output files.
     """
 
     # Set output directory
-    dir = os.path.join('output',fout)
-    fname = os.path.join(dir,f'{fout}_Progress.csv')
+    fname = os.path.join(dirout,f'{fout}_Progress.csv')
 
     # Generate formmatter
     if nt > 1:

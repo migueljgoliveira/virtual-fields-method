@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-def write_virtual_work(ivw,evw,test,nvfs,nf,nt,fout):
+def write_virtual_work(ivw,evw,test,nvfs,nf,nt,fout,dirout):
     """
     Write internal and external virtual work of final solution.
 
@@ -21,17 +21,18 @@ def write_virtual_work(ivw,evw,test,nvfs,nf,nt,fout):
         Name of test.
     fout : str
         Name of output folder.
+    dirout : str
+        Directory of project to export output files.
     """
 
     # Set output directory
     if nt > 1:
-        dir = os.path.join('output',fout,test)
+        dir = os.path.join(dirout,test)
         fnameivw = os.path.join(dir,f'{test}_IVW.csv')
         fnameevw = os.path.join(dir,f'{test}_EVW.csv')
     else:
-        dir = os.path.join('output',fout)
-        fnameivw = os.path.join(dir,f'{fout}_IVW.csv')
-        fnameevw = os.path.join(dir,f'{fout}_EVW.csv')
+        fnameivw = os.path.join(dirout,f'{fout}_IVW.csv')
+        fnameevw = os.path.join(dirout,f'{fout}_EVW.csv')
 
     # Set file header
     head = [f'vf{i+1}' for i in range(nvfs)]

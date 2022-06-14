@@ -1,3 +1,4 @@
+import os
 import time
 from datetime import datetime
 
@@ -27,7 +28,7 @@ def print_start(prjname,fout,dirout):
     now = datetime.now()
 
     # Create log file
-    with open(f'{dirout}\{fout}.log','w') as f:
+    with open(os.path.join(dirout,f'{fout}.log'),'w') as f:
         head = f'\n  ~ VIRTUAL FIELDS METHOD ~\n'
         print(head)
         f.write(head)

@@ -9,7 +9,7 @@ warnings.filterwarnings('ignore')
 
 def fcn_callback(x,strain,rot,dfgrd,rotm,time,bg,mbginv,bcdofs,vfs,nn,ne,dof,
                  ndi,nshr,ntens,ncomp,nstatev,nvfs,nf,nt,nprops,props,vars,
-                 nvars,constr,nlgeom,test,fout):
+                 nvars,constr,nlgeom,test,fout,dirout):
 
     # Declare global variables
     global it,fevit,bestphi,ivw,evw
@@ -37,13 +37,14 @@ def fcn_callback(x,strain,rot,dfgrd,rotm,time,bg,mbginv,bcdofs,vfs,nn,ne,dof,
 
     # Write virtual work of current solution
     for t in range(nt):
-        _funcs.write_virtual_work(ivw[t],evw[t],test[t],nvfs[t],nf[t],nt,fout)
+        _funcs.write_virtual_work(ivw[t],evw[t],test[t],nvfs[t],nf[t],nt,
+                                  fout,dirout)
 
     # Print variables and total cost function progress to screen and log file
-    _funcs.print_progress(it,fevit,x,bestphi,nvars,nt,fout,'it')
+    _funcs.print_progress(it,fevit,x,bestphi,nvars,nt,fout,dirout,'it')
 
     # Write variables and cost function progress to file
-    _funcs.write_progress(it,fevit,x,bestphi,nvars,nt,fout)
+    _funcs.write_progress(it,fevit,x,bestphi,nvars,nt,fout,dirout)
 
     # Update iteration number
     it += 1
@@ -54,14 +55,14 @@ def fcn_callback(x,strain,rot,dfgrd,rotm,time,bg,mbginv,bcdofs,vfs,nn,ne,dof,
     return
 
 def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
-        nvfs,nf,nt,nprops,props,vars,nvars,constr,nlgeom,fout):
+        nvfs,nf,nt,nprops,props,vars,nvars,constr,nlgeom,fout,dirout):
 
     # Declare global variables
     global fev,fevit,it,fevphi,bestphi,ivw,evw
 
     # Print iteration header to log file
     if fevit == 0 or ((fevit == 1) and (it == 1)):
-        _funcs.print_iteration(it,fout)
+        _funcs.print_iteration(it,fout,dirout)
 
     # Update number of total evaluations
     fev += 1
@@ -101,10 +102,10 @@ def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
         bestphi = fevphi
 
     # Print variables and cost function progress to screen and log file
-    _funcs.print_progress(it,fevit,x,fevphi,nvars,nt,fout,'fe')
+    _funcs.print_progress(it,fevit,x,fevphi,nvars,nt,fout,dirout,'fe')
 
     # Write variables and cost function progress to file
-    _funcs.write_progress(it,fevit,x,fevphi,nvars,nt,fout)
+    _funcs.write_progress(it,fevit,x,fevphi,nvars,nt,fout,dirout)
 
     # Update number of iteration after initial evaluation
     if it == 0: it += 1
@@ -113,7 +114,7 @@ def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
 
 def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
                    nn,ne,dof,ndi,nshr,ntens,ncomp,nstatev,nvfs,nf,nt,nprops,
-                   nvars,props,vars,bounds,constr,nlgeom,test,fout,st):
+                   nvars,props,vars,bounds,constr,nlgeom,test,fout,dirout,st):
     """
     Perform identification of material properties.
 
@@ -181,6 +182,8 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
         List of tests name.
     fout : str
         Name of output folder.
+    dirout : str
+        Directory of project to export output files.
     st : float
         Start time in seconds since epoch.
 
@@ -199,7 +202,7 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
 
     # Set arguments for identification function
     args = (strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
-            nvfs,nf,nt,nprops,props,vars,nvars,constr,nlgeom,fout)
+            nvfs,nf,nt,nprops,props,vars,nvars,constr,nlgeom,fout,dirout)
 
     # Generate wrapper for callback function
     fcncb = partial(fcn_callback,strain=strain,rot=rot,dfgrd=dfgrd,rotm=rotm,
@@ -209,7 +212,7 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
                                  nvfs=nvfs,nf=nf,nt=nt,nprops=nprops,
                                  props=props,vars=vars,nvars=nvars,
                                  constr=constr,nlgeom=nlgeom,test=test,
-                                 fout=fout)
+                                 fout=fout,dirout=dirout)
 
     # Start identification algorithm
     result = minimize(fcn,
@@ -238,6 +241,6 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
 
     # Print summary of identification results to log
     _funcs.print_result_identification(nit,nfev,x,bestphi,tmsg,nvars,nt,
-                                       fout,st)
+                                       fout,dirout,st)
 
     return props

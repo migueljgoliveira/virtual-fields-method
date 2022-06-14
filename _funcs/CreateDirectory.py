@@ -23,8 +23,7 @@ def create_directory(prjnm,fout,test,nt):
     """
 
     # Set directories
-    cwd = os.getcwd()
-    outf = os.path.join(cwd,'output')
+    outf = os.path.join(os.getcwd(),'output')
     dirout = os.path.join(outf,fout)
 
     # Create output folder
@@ -44,7 +43,7 @@ def create_directory(prjnm,fout,test,nt):
             os.mkdir(f'{dirout}\{test[t]}')
 
     # Copy options file to output folder
-    dirin = os.path.join(cwd,'input',prjnm,f'{prjnm}.vfm')
+    dirin = os.path.join(os.getcwd(),'input',prjnm,f'{prjnm}.vfm')
     shutil.copy2(dirin,os.path.join(dirout,f'{prjnm}.vfm'))
 
     return dirout

@@ -349,7 +349,7 @@ def load_options(prjnm):
     """
 
     # Path to settings file
-    filename = os.path.join('input',prjnm,f'{prjnm}.vfm')
+    filename = os.path.join(os.getcwd(),'input',prjnm,f'{prjnm}.vfm')
 
     # Read settings file
     with open(filename,'r') as f:

@@ -23,7 +23,8 @@ def print_write(out,f):
 
     return
 
-def print_result_identification(nit,nfev,bestx,bestphi,tmsg,nvars,nt,fout,st):
+def print_result_identification(nit,nfev,bestx,bestphi,tmsg,nvars,nt,fout,
+                                dirout,st):
     """
     Print and write results to command window and log file.
 
@@ -45,12 +46,14 @@ def print_result_identification(nit,nfev,bestx,bestphi,tmsg,nvars,nt,fout,st):
         Number of tests.
     fout : str
         Name of output folder.
+    dirout : str
+        Directory of project to export output files.
     st : float
         Start time in seconds since epoch.
     """
 
     # Open log file
-    f = open(os.path.join('output',fout,f'{fout}.log'),'a')
+    f = open(os.path.join(dirout,f'{fout}.log'),'a')
 
     # Set number of lines to bring cursor up
     if nt > 1:
@@ -114,7 +117,7 @@ def print_result_identification(nit,nfev,bestx,bestphi,tmsg,nvars,nt,fout,st):
 
     return
 
-def print_result_simulation(phi,nt,fout,st):
+def print_result_simulation(phi,nt,fout,dirout,st):
     """
     Print and write results to command window and log file.
 
@@ -126,12 +129,14 @@ def print_result_simulation(phi,nt,fout,st):
         Number of tests.
     fout : str
         Name of output folder.
+    dirout : str
+        Directory of project to export output files.
     st : float
         Start time in seconds since epoch.
     """
 
     # Open log file
-    f = open(os.path.join('output',fout,f'{fout}.log'),'a')
+    f = open(os.path.join(dirout,f'{fout}.log'),'a')
 
     print_write('\n',f)
 

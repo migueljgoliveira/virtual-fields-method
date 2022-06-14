@@ -7,7 +7,7 @@ from scipy.fftpack import ss_diff
 import _utils
 
 def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
-                    pkstress,vfs,ss,iss,ne,dof,nvfs,nf,test,nt,fout):
+                    pkstress,vfs,ss,iss,ne,dof,nvfs,nf,test,nt,fout,dirout):
     """
     Export experimental finite element mesh to paraview file.
 
@@ -51,9 +51,9 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
         Number of tests.
     fout : str
         Name of output folder.
+    dirout : str
+        Directory of project to export output files.
     """
-
-    cwd = os.getcwd()
 
     # Rearrange voigt components
     if dof == 2:
@@ -93,9 +93,9 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
 
     # Set output folder
     if nt > 1:
-        outF = os.path.join(cwd,'output',fout,fout,test)
+        outF = os.path.join(dirout,fout,test)
     else:
-        outF = os.path.join(cwd,'output',fout,fout)
+        outF = os.path.join(dirout,fout)
 
     # Output paraview file
     with meshio.xdmf.TimeSeriesWriter(f'{outF}.xdmf') as w:

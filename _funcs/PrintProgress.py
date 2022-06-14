@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 
@@ -15,11 +16,11 @@ def close_log_file(flog):
 
     flog.close()
 
-def open_log_file(fout,mode='a'):
+def open_log_file(fout,dirout,mode='a'):
 
-    return open(f'output\{fout}\{fout}.log',mode)
+    return open(os.path.join(dirout,f'{fout}.log'),mode)
 
-def print_iteration(it,fout):
+def print_iteration(it,fout,dirout):
     """
     Print and write iteration header to command window and log file.
 
@@ -29,10 +30,12 @@ def print_iteration(it,fout):
         Iteration number.
     fout : str
         Name of output folder.
+    dirout : str
+        Directory of project to export output files.
     """
 
     # Open log file
-    flog = open_log_file(fout)
+    flog = open_log_file(fout,dirout)
 
     print_write('\n',flog)
 
@@ -58,7 +61,7 @@ def print_iteration(it,fout):
 
     return
 
-def print_progress(it,fevit,x,phi,nvars,nt,fout,type):
+def print_progress(it,fevit,x,phi,nvars,nt,fout,dirout,type):
     """
     Print and write identification progress to command window and log file.
 
@@ -78,10 +81,12 @@ def print_progress(it,fevit,x,phi,nvars,nt,fout,type):
         Number of tests.
     fout : str
         Name of output folder.
+    dirout : str
+        Directory of project to export output files.
     """
 
     # Open log file for read
-    flog = open_log_file(fout,mode='r+')
+    flog = open_log_file(fout,dirout,mode='r+')
 
     # Read log file contents
     fdata = flog.readlines()
@@ -96,13 +101,13 @@ def print_progress(it,fevit,x,phi,nvars,nt,fout,type):
     if fevit != 1 and (not (fevit == 2 and it == 1)):
 
         # Open log file for write
-        flog = open_log_file(fout,mode='w')
+        flog = open_log_file(fout,dirout,mode='w')
 
         # Write log file contents up to cursor line
         flog.writelines(fdata[:-cursor])
 
     # Open log file for append
-    flog = open_log_file(fout,mode='a')
+    flog = open_log_file(fout,dirout,mode='a')
 
     # Print current number of evaluations in iteration
     if it > 0:

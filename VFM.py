@@ -107,10 +107,10 @@ def VFM(prjnm):
         # Write virtual work of given material properties
         for t in range(nt):
             _funcs.write_virtual_work(ivw[t],evw[t],test[t],nvfs[t],nf[t],
-                                      nt,fout)
+                                      nt,fout,dirout)
 
         # Print summary of simulation results to log
-        _funcs.print_result_simulation(phi,nt,fout,st)
+        _funcs.print_result_simulation(phi,nt,fout,dirout,st)
 
     # Perform identification of material properties
     elif run == 'identification':
@@ -119,7 +119,7 @@ def VFM(prjnm):
                                       mbginv,bcdofs,vfs,nn,ne,dof,ndi,nshr,
                                       ntens,ncomp,nstatev,nvfs,nf,nt,nprops,
                                       nvars,props,vars,bounds,constr,nlgeom,
-                                      test,fout,st)
+                                      test,fout,dirout,st)
 
     ###################
     # POST-PROCESSING #
@@ -131,7 +131,7 @@ def VFM(prjnm):
                                dfgrd[t],vol[t],time[t],rotm[t],vfs[t],ne[t],
                                dof[t],ndi[t],nshr[t],ntens[t],ncomp[t],
                                nstatev[t],nvfs[t],nf[t],test[t],nt,nprops,
-                               props,vars,nlgeom,fout)
+                               props,vars,nlgeom,fout,dirout)
 
     return
 

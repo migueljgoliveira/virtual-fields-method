@@ -50,7 +50,7 @@ def load_data(prjnm,test,nt):
     ori = np.zeros(nt)
 
     # Set project directory
-    dir = os.path.join('input',prjnm)
+    dir = os.path.join(os.getcwd(),'input',prjnm)
 
     for t in range(nt):
 
