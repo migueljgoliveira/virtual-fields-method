@@ -100,9 +100,10 @@ def VFM(prjnm):
             props = _funcs.properties_constraints(props,constr)
 
         # Perform vfm simulation with given material properties
-        ivw,evw,phi = _funcs.simulation(strain,rot,dfgrd,rotm,force,vol,vfs,ne,
-                                        dof,ndi,nshr,ntens,nstatev,nvfs,nf,nt,
-                                        nprops,props,nlgeom,fout)
+        ivw,evw,phi,success = _funcs.simulation(strain,rot,dfgrd,rotm,force,
+                                                vol,vfs,ne,dof,ndi,nshr,ntens,
+                                                nstatev,nvfs,nf,nt,nprops,
+                                                props,nlgeom,fout)
 
         # Write virtual work of given material properties
         for t in range(nt):

@@ -14,11 +14,14 @@ def fcn_callback(x,strain,rot,dfgrd,rotm,time,bg,mbginv,bcdofs,vfs,nn,ne,dof,
     # Declare global variables
     global it,fevit,bestphi,ivw,evw
 
+    # Copy material properties
+    fcnprops = np.copy(props)
+
     # Update material properties with current solution
-    props[vars] = x
+    fcnprops[vars] = x
 
     # Apply user-defined properties constraints
-    props = _funcs.properties_constraints(props,constr)
+    fcnprops = _funcs.properties_constraints(fcnprops,constr)
 
     # Update sensivity-based virtual fields
     for t in range(nt):
@@ -32,8 +35,8 @@ def fcn_callback(x,strain,rot,dfgrd,rotm,time,bg,mbginv,bcdofs,vfs,nn,ne,dof,
                                                            nshr[t],ntens[t],
                                                            ncomp[t],nstatev[t],
                                                            nvfs[t],nf[t],
-                                                           nprops,props,vars,
-                                                           nlgeom,fout)
+                                                           nprops,fcnprops,
+                                                           vars,nlgeom,fout)
 
     # Write virtual work of current solution
     for t in range(nt):
@@ -64,6 +67,9 @@ def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
     if fevit == 0 or ((fevit == 1) and (it == 1)):
         _funcs.print_iteration(it,fout,dirout)
 
+    # Copy material properties
+    fcnprops = np.copy(props)
+
     # Update number of total evaluations
     fev += 1
 
@@ -71,10 +77,10 @@ def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
     fevit += 1
 
     # Update material properties with current solution
-    props[vars] = x
+    fcnprops[vars] = x
 
     # Apply user-defined properties constraints
-    props = _funcs.properties_constraints(props,constr)
+    fcnprops = _funcs.properties_constraints(fcnprops,constr)
 
     # Check validity of current solution
     valid = ~np.isnan(props[vars]).any()
@@ -84,7 +90,7 @@ def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
         ivw,evw,fevphi,success = _funcs.simulation(strain,rot,dfgrd,rotm,force,
                                                    vol,vfs,ne,dof,ndi,nshr,
                                                    ntens,nstatev,nvfs,nf,nt,
-                                                   nprops,props,nlgeom,fout)
+                                                   nprops,fcnprops,nlgeom,fout)
 
     # If solution is not valid or stress reconstruction fails return nan
     if (not valid) or (not success):
