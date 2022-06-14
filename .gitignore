@@ -134,7 +134,6 @@ dmypy.json
 *.cae
 *.inp
 output/
-input/
-input/*/*.vfm
-!input/Debug/
+input/*
+!input/Debug
 *.ummdp
