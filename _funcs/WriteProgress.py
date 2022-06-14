@@ -24,8 +24,8 @@ def write_progress(it,fevit,x,phi,nvars,nt,fout):
     """
 
     # Set output directory
-    dir = f'output\{fout}'
-    fname = f'{dir}\{fout}_Progress.csv'
+    dir = os.path.join('output',fout)
+    fname = os.path.join(dir,f'{fout}_Progress.csv')
 
     # Generate formmatter
     if nt > 1:

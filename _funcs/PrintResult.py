@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import numpy as np
@@ -49,7 +50,7 @@ def print_result_identification(nit,nfev,bestx,bestphi,tmsg,nvars,nt,fout,st):
     """
 
     # Open log file
-    f = open(f'output\{fout}\{fout}.log','a')
+    f = open(os.path.join('output',fout,f'{fout}.log'),'a')
 
     # Set number of lines to bring cursor up
     if nt > 1:
@@ -130,7 +131,7 @@ def print_result_simulation(phi,nt,fout,st):
     """
 
     # Open log file
-    f = open(f'output\{fout}\{fout}.log','a')
+    f = open(os.path.join('output',fout,f'{fout}.log'),'a')
 
     print_write('\n',f)
 

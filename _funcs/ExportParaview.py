@@ -53,6 +53,8 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
         Name of output folder.
     """
 
+    cwd = os.getcwd()
+
     # Rearrange voigt components
     if dof == 2:
         stress3d = np.zeros((nf,ne,6))
@@ -91,9 +93,9 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
 
     # Set output folder
     if nt > 1:
-        outF = f'{os.getcwd()}\\output\\{fout}\\{test}\\{test}'
+        outF = os.path.join(cwd,'output',fout,fout,test)
     else:
-        outF = f'{os.getcwd()}\\output\\{fout}\\{fout}'
+        outF = os.path.join(cwd,'output',fout,fout)
 
     # Output paraview file
     with meshio.xdmf.TimeSeriesWriter(f'{outF}.xdmf') as w:

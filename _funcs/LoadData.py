@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 import _funcs
@@ -49,7 +50,7 @@ def load_data(prjnm,test,nt):
     ori = np.zeros(nt)
 
     # Set project directory
-    dir = f'input\{prjnm}'
+    dir = os.path.join('input',prjnm)
 
     for t in range(nt):
 
@@ -57,7 +58,7 @@ def load_data(prjnm,test,nt):
         tnm = test[t]
 
         # Set files test directory
-        filesdir = f'{dir}\{tnm}\{tnm}'
+        filesdir = os.path.join(dir,tnm,tnm)
 
         # Load time increments
         filename = f'{filesdir}_Time.csv'

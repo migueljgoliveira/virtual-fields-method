@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 def write_virtual_work(ivw,evw,test,nvfs,nf,nt,fout):
@@ -24,13 +25,13 @@ def write_virtual_work(ivw,evw,test,nvfs,nf,nt,fout):
 
     # Set output directory
     if nt > 1:
-        dir = f'output\{fout}\{test}'
-        fnameivw = f'{dir}\{test}_IVW.csv'
-        fnameevw = f'{dir}\{test}_EVW.csv'
+        dir = os.path.join('output',fout,test)
+        fnameivw = os.path.join(dir,f'{test}_IVW.csv')
+        fnameevw = os.path.join(dir,f'{test}_EVW.csv')
     else:
-        dir = f'output\{fout}'
-        fnameivw = f'{dir}\{fout}_IVW.csv'
-        fnameevw = f'{dir}\{fout}_EVW.csv'
+        dir = os.path.join('output',fout)
+        fnameivw = os.path.join(dir,f'{fout}_IVW.csv')
+        fnameevw = os.path.join(dir,f'{fout}_EVW.csv')
 
     # Set file header
     head = [f'vf{i+1}' for i in range(nvfs)]

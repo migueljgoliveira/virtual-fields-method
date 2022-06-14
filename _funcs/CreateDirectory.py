@@ -1,13 +1,13 @@
 import os
 import shutil
 
-def create_directory(prjname,fout,test,nt):
+def create_directory(prjnm,fout,test,nt):
     """
     Create directory to export output files of current project.
 
     Parameters
     ----------
-    prjname: str
+    prjnm: str
         Name of current project.
     fout : str
         Name of output folder.
@@ -24,8 +24,8 @@ def create_directory(prjname,fout,test,nt):
 
     # Set directories
     cwd = os.getcwd()
-    outf = f'{cwd}\\output'
-    dirout = f'{outf}\\{fout}'
+    outf = os.path.join(cwd,'output')
+    dirout = os.path.join(outf,fout)
 
     # Create output folder
     if not os.path.isdir(outf):
@@ -44,7 +44,7 @@ def create_directory(prjname,fout,test,nt):
             os.mkdir(f'{dirout}\{test[t]}')
 
     # Copy options file to output folder
-    dirin = f'{cwd}\input\{prjname}'
-    shutil.copy2(f'{dirin}\{prjname}.vfm',f'{dirout}\{prjname}.vfm')
+    dirin = os.path.join(cwd,'input',prjnm,f'{prjnm}.vfm')
+    shutil.copy2(dirin,os.path.join(dirout,f'{prjnm}.vfm'))
 
     return dirout

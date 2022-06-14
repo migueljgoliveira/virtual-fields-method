@@ -1,3 +1,4 @@
+import os
 import re
 import numpy as np
 
@@ -348,7 +349,7 @@ def load_options(prjnm):
     """
 
     # Path to settings file
-    filename = f'input\{prjnm}\{prjnm}.vfm'
+    filename = os.path.join('input',prjnm,f'{prjnm}.vfm')
 
     # Read settings file
     with open(filename,'r') as f:
