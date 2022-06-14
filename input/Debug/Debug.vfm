@@ -45,6 +45,12 @@
  9 , 0
  10, 0
 **
+**Boundaries
+ 3
+ 6, -inf, +inf
+ 7, 0, +inf
+ 8, -inf, 10.0
+**
 *Constraints
  1
  7, ([7]/[6])**(1/[8])

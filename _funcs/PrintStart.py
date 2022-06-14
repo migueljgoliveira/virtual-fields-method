@@ -36,6 +36,10 @@ def print_start(prjname,fout,dirout):
         print(prj)
         f.write(f'\n{prj}')
 
+        out = f'  Output Folder : {fout}'
+        print(out)
+        f.write(f'\n{out}')
+
         date = f'  Date : {now.date()}'
         print(date)
         f.write(f'\n{date}')

@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-def write_progress(it,feit,x,phi,nvars,nt,fout):
+def write_progress(it,fevit,x,phi,nvars,nt,fout):
     """
     Write identification progress of variables and cost function. 
 
@@ -9,8 +9,8 @@ def write_progress(it,feit,x,phi,nvars,nt,fout):
     ----------
     it : int
         Iteration number.
-    feit : int
-        Total number of evaluations in iteration.
+    fevit : int
+        Total number of function evaluations in iteration.
     x : (nvars,) , float
         Current or best identification variables.
     phi : (nt,) , float
@@ -60,7 +60,7 @@ def write_progress(it,feit,x,phi,nvars,nt,fout):
             lout = np.insert(x,0,phi)
 
         # Insert total number of evaluations in iteration
-        lout = np.insert(lout,0,feit)
+        lout = np.insert(lout,0,fevit)
 
         # Insert iteration number
         lout = np.insert(lout,0,it)
@@ -79,7 +79,7 @@ def write_progress(it,feit,x,phi,nvars,nt,fout):
             lout = np.insert(x,0,phi)
 
         # Insert total number of evaluations in iteration
-        lout = np.insert(lout,0,feit)
+        lout = np.insert(lout,0,fevit)
 
         # Insert iteration number
         lout = np.insert(lout,0,it)

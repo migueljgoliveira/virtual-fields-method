@@ -58,7 +58,7 @@ def print_iteration(it,fout):
 
     return
 
-def print_progress(it,feit,x,phi,nvars,nt,fout,type):
+def print_progress(it,fevit,x,phi,nvars,nt,fout,type):
     """
     Print and write identification progress to command window and log file.
 
@@ -66,8 +66,8 @@ def print_progress(it,feit,x,phi,nvars,nt,fout,type):
     ----------
     it : int
         Iteration number.
-    feit : int
-        Current number of evaliation in iteration.
+    fevit : int
+        Current number of function evaluations in iteration.
     x : (nvars,) , float
         Current iteration identification variables.
     phi : (nt,) , float
@@ -93,7 +93,7 @@ def print_progress(it,feit,x,phi,nvars,nt,fout,type):
         cursor = 9
 
     # Write log file contents without last evaluation
-    if feit != 1 and (not (feit == 2 and it == 1)):
+    if fevit != 1 and (not (fevit == 2 and it == 1)):
 
         # Open log file for write
         flog = open_log_file(fout,mode='w')
@@ -106,8 +106,8 @@ def print_progress(it,feit,x,phi,nvars,nt,fout,type):
 
     # Print current number of evaluations in iteration
     if it > 0:
-        lfeit = len(str(feit))
-        feithead = f'  Evaluations {spc*(13-lfeit)}{feit}'
+        lfeit = len(str(fevit))
+        feithead = f'  Evaluations {spc*(13-lfeit)}{fevit}'
         print_write(feithead,flog,end='')
 
     # Print variables

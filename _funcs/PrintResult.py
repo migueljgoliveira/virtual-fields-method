@@ -22,7 +22,7 @@ def print_write(out,f):
 
     return
 
-def print_result_identification(nit,nfe,bestx,bestphi,tmsg,nvars,nt,fout,st):
+def print_result_identification(nit,nfev,bestx,bestphi,tmsg,nvars,nt,fout,st):
     """
     Print and write results to command window and log file.
 
@@ -30,8 +30,8 @@ def print_result_identification(nit,nfe,bestx,bestphi,tmsg,nvars,nt,fout,st):
     ----------
     nit : int
         Number of iteration.
-    nfe : int
-        Number of evaluations.
+    nfev : int
+        Number of function evaluations.
     bestx : (nvars,) , float
         Final best identification variables.
     bestphi : (nt,) , float
@@ -78,7 +78,7 @@ def print_result_identification(nit,nfe,bestx,bestphi,tmsg,nvars,nt,fout,st):
     print_write(evalhead,f)
 
     # Print number of evaluations
-    evalhead = f'  Evaluations : {nfe}'
+    evalhead = f'  Evaluations : {nfev}'
     print_write(evalhead,f)
 
     # Print total time

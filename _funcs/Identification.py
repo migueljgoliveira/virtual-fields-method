@@ -12,7 +12,7 @@ def fcn_callback(x,strain,rot,dfgrd,rotm,time,bg,mbginv,bcdofs,vfs,nn,ne,dof,
                  nvars,constr,nlgeom,test,fout):
 
     # Declare global variables
-    global it,feit,itphi,ivw,evw
+    global it,fevit,bestphi,ivw,evw
 
     # Update material properties with current solution
     props[vars] = x
@@ -40,16 +40,16 @@ def fcn_callback(x,strain,rot,dfgrd,rotm,time,bg,mbginv,bcdofs,vfs,nn,ne,dof,
         _funcs.write_virtual_work(ivw[t],evw[t],test[t],nvfs[t],nf[t],nt,fout)
 
     # Print variables and total cost function progress to screen and log file
-    _funcs.print_progress(it,feit,x,itphi,nvars,nt,fout,'it')
+    _funcs.print_progress(it,fevit,x,bestphi,nvars,nt,fout,'it')
 
     # Write variables and cost function progress to file
-    _funcs.write_progress(it,feit,x,itphi,nvars,nt,fout)
+    _funcs.write_progress(it,fevit,x,bestphi,nvars,nt,fout)
 
     # Update iteration number
     it += 1
 
     # Reset function evaluations per iteration counter
-    feit = 0
+    fevit = 0
 
     return
 
@@ -57,17 +57,17 @@ def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
         nvfs,nf,nt,nprops,props,vars,nvars,constr,nlgeom,fout):
 
     # Declare global variables
-    global fe,feit,it,itphi,ivw,evw
+    global fev,fevit,it,fevphi,bestphi,ivw,evw
 
     # Print iteration header to log file
-    if feit == 0 or ((feit == 1) and (it == 1)):
+    if fevit == 0 or ((fevit == 1) and (it == 1)):
         _funcs.print_iteration(it,fout)
 
     # Update number of total evaluations
-    fe += 1
+    fev += 1
 
     # Update current number of evaluations in iteration
-    feit += 1
+    fevit += 1
 
     # Update material properties with current solution
     props[vars] = x
@@ -80,26 +80,31 @@ def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
 
     # Perform vfm simulation with current solution
     if valid:
-        ivw,evw,itphi,success = _funcs.simulation(strain,rot,dfgrd,rotm,force,
-                                                  vol,vfs,ne,dof,ndi,nshr,
-                                                  ntens,nstatev,nvfs,nf,nt,
-                                                  nprops,props,nlgeom,fout)
+        ivw,evw,fevphi,success = _funcs.simulation(strain,rot,dfgrd,rotm,force,
+                                                   vol,vfs,ne,dof,ndi,nshr,
+                                                   ntens,nstatev,nvfs,nf,nt,
+                                                   nprops,props,nlgeom,fout)
 
     # If solution is not valid or stress reconstruction fails return nan
-    if (not valid) or (not success): itphi = np.nan
+    if (not valid) or (not success):
+        fevphi = np.nan
 
     # # Update cost function with correction factor
     # if 'sb' in list(vfs[t].keys()):
     #     phi,cf = _funcs.correction_factor(res,allphi[-2],cf,it)
 
     # Compute total cost function
-    phi = np.sum(itphi)
+    phi = np.sum(fevphi)
+
+    # Save best cost function
+    if (bestphi == None) or (phi < np.sum(bestphi)):
+        bestphi = fevphi
 
     # Print variables and cost function progress to screen and log file
-    _funcs.print_progress(it,feit,x,itphi,nvars,nt,fout,'fe')
+    _funcs.print_progress(it,fevit,x,fevphi,nvars,nt,fout,'fe')
 
     # Write variables and cost function progress to file
-    _funcs.write_progress(it,feit,x,itphi,nvars,nt,fout)
+    _funcs.write_progress(it,fevit,x,fevphi,nvars,nt,fout)
 
     # Update number of iteration after initial evaluation
     if it == 0: it += 1
@@ -186,11 +191,11 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
     """
 
     # Declare global variables
-    global fe,feit,it,itphi
+    global fev,fevit,it,fevphi,bestphi
 
     # Initialize global variables
-    fe,it,feit = 0,0,0
-    itphi = None
+    fev,it,fevit = 0,0,0
+    fevphi,bestphi = None,None
 
     # Set arguments for identification function
     args = (strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
@@ -210,30 +215,29 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
     result = minimize(fcn,
                       args = args,
                       x0 = props[vars],
-                      method = 'TNC',
-                      jac = '2-point',
+                      method = 'Nelder-Mead',
                       bounds =  bounds[vars],
                       tol = 1e-8,
                       options = {
                                  'maxiter': int(1e8),
-                                 'ftol': 1e-8,
-                                 'xtol': 1e-8,
-                                 'gtol': 1e-8,
-                                 'finite_diff_rel_step': 1e-6,
+                                 'fatol': 1e-8,
+                                 'xatol': 1e-8,
+                                 'adaptive': True,
                                 },
                       callback = fcncb,
                       )
 
     # Get identification results
     x = result.x
-    nit = it
-    nfe = fe
+    nit = result.nit
+    nfev = result.nfev
     tmsg = result.message
 
     # Update material properties with best identification variables
     props[vars] = x
 
     # Print summary of identification results to log
-    _funcs.print_result_identification(nit,nfe,x,itphi,tmsg,nvars,nt,fout,st)
+    _funcs.print_result_identification(nit,nfev,x,bestphi,tmsg,nvars,nt,
+                                       fout,st)
 
     return props
