@@ -10,6 +10,9 @@
 *Output
  Debug
 **
+*Optimization
+ 1e-8,500
+**
 *Nlgeom
  1
 **

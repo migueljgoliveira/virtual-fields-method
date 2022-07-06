@@ -59,7 +59,6 @@ def cauchy_stress(strain,rot,rotm,ne,dof,ndi,nshr,ntens,nstatev,nf,nprops,
         stress,statev,de33 = _funcs.ummdp_vfm.ummdp_vfm(strain,ne,ndi,nshr,
                                                         ntens,nstatev,props,
                                                         nprops,nf,fout)
-
         success = True
 
     except Exception:

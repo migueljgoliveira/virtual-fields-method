@@ -67,6 +67,39 @@ def load_output(data,ln,prjnm):
 
     return fout
 
+
+def load_optimization(data,ln):
+    """
+    Load optimization settings.
+
+    Parameters
+    ----------
+    data : (), str
+        Options file data contents.
+    ln : int
+        Line number of optimization option in data file.
+
+    Returns
+    -------
+    fout : str
+        Name of output folder.
+    """
+    kw = '*Optimization.'
+
+    tol,maxiter = None,None
+
+    if ln != -1:
+        try:
+            tol,maxiter = np.array(data[ln+1].split(','),dtype=float)
+        except:
+            if (tol is None) or (maxiter is None):
+                _utils.error(f'{kw} Tolerance or maximum number of iterations is not defined.')
+    else:
+        tol = 1e-8
+        maxiter = 500
+
+    return tol,maxiter
+
 def load_nlgeom(data,ln):
     """
     Load flag for small or large (default) deformation framework
@@ -369,6 +402,7 @@ def load_options(prjnm):
     lid = -1
     ltest = -1
     lfout = -1
+    lopti = -1
     lnlgeom = -1
     lvfs = -1
     lbc =-1 
@@ -388,6 +422,8 @@ def load_options(prjnm):
             ltest = l
         elif '*output' in line:
             lfout = l
+        elif '*optimization' in line:
+            lopti = l
         elif '*nlgeom' in line:
             lnlgeom = l
         elif '*virtualfields' in line:
@@ -421,6 +457,9 @@ def load_options(prjnm):
     # Load output folder name
     fout = load_output(data,lfout,prjnm)
 
+    # Load optimization seetings
+    tol,maxiter = load_optimization(data,lopti)
+
     # Load flag for small or large (default) deformation framework
     nlgeom = load_nlgeom(data,lnlgeom)
 
@@ -442,4 +481,4 @@ def load_options(prjnm):
     # Load identification properties constraints
     constr = load_constraints(data,lconstr,nprops)
 
-    return run,tests,fout,props,vars,bounds,constr,nlgeom,vfs,bc,nprops,nvars,nt
+    return run,tests,fout,tol,maxiter,props,vars,bounds,constr,nlgeom,vfs,bc,nprops,nvars,nt

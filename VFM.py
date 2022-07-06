@@ -10,7 +10,7 @@ def VFM(prjnm):
     ##################
 
     # Load options
-    run,test,fout,props,vars,bounds,constr,nlgeom,vfs,bc,nprops,nvars,nt = _funcs.load_options(prjnm)
+    run,test,fout,tol,maxiter,props,vars,bounds,constr,nlgeom,vfs,bc,nprops,nvars,nt = _funcs.load_options(prjnm)
 
     # Create output directory
     dirout = _funcs.create_directory(prjnm,fout,test,nt)
@@ -120,7 +120,7 @@ def VFM(prjnm):
                                       mbginv,bcdofs,vfs,nn,ne,dof,ndi,nshr,
                                       ntens,ncomp,nstatev,nvfs,nf,nt,nprops,
                                       nvars,props,vars,bounds,constr,nlgeom,
-                                      test,fout,dirout,st)
+                                      test,fout,dirout,tol,maxiter,st)
 
     ###################
     # POST-PROCESSING #

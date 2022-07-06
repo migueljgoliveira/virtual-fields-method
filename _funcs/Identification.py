@@ -96,10 +96,6 @@ def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
     if (not valid) or (not success):
         fevphi = np.nan
 
-    # # Update cost function with correction factor
-    # if 'sb' in list(vfs[t].keys()):
-    #     phi,cf = _funcs.correction_factor(res,allphi[-2],cf,it)
-
     # Compute total cost function
     phi = np.sum(fevphi)
 
@@ -120,7 +116,8 @@ def fcn(x,strain,rot,dfgrd,rotm,force,vol,vfs,ne,dof,ndi,nshr,ntens,nstatev,
 
 def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
                    nn,ne,dof,ndi,nshr,ntens,ncomp,nstatev,nvfs,nf,nt,nprops,
-                   nvars,props,vars,bounds,constr,nlgeom,test,fout,dirout,st):
+                   nvars,props,vars,bounds,constr,nlgeom,test,fout,dirout,tol,
+                   maxiter,st):
     """
     Perform identification of material properties.
 
@@ -226,11 +223,9 @@ def identification(strain,rot,dfgrd,rotm,force,time,vol,bg,mbginv,bcdofs,vfs,
                       x0 = props[vars],
                       method = 'Nelder-Mead',
                       bounds =  bounds[vars],
-                      tol = 1e-8,
+                      tol = tol,
                       options = {
-                                 'maxiter': int(1e8),
-                                 'fatol': 1e-8,
-                                 'xatol': 1e-8,
+                                 'maxiter': maxiter,
                                  'adaptive': True,
                                 },
                       callback = fcncb,
