@@ -2,7 +2,7 @@ import numpy as np
 
 def flatten_tensor(tensor,ne,dof,nf):
     """ 
-    Flatten tensor and rearrange components order.
+    Flatten unsymmetric tensor and rearrange components order.
 
     Parameters
     ----------

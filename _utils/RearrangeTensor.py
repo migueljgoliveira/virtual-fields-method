@@ -2,7 +2,7 @@ import numpy as np
 
 def rearrange_tensor(tensor,ne,dof,nf,d4=1):
     """
-    Export experimental finite element mesh to paraview file.
+    Rearrange components order of tensor.
 
     Parameters
     ----------

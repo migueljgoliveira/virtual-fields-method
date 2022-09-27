@@ -385,8 +385,11 @@ def load_options(prjnm):
     filename = os.path.join(os.getcwd(),'input',prjnm,f'{prjnm}.vfm')
 
     # Read settings file
-    with open(filename,'r') as f:
-        dataraw = f.readlines()
+    try:
+        with open(filename,'r') as f:
+            dataraw = f.readlines()
+    except:
+        _utils.error('Project not found.')
 
     # Clean settings data of comments and spaces
     data = []

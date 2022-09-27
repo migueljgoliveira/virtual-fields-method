@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 
 import _funcs
 import _utils
@@ -65,8 +66,8 @@ def VFM(prjnm):
         if 'ud' in list(vfs[t].keys()):
 
             # Generate user-defined virtual fields
-            vfs[t],nvfs[t] = _funcs.user_defined_virtual_fields(coord[t],
-                                                                centr[t],ne[t],
+            vfs[t],nvfs[t],vfsu = _funcs.user_defined_virtual_fields(coord[t],
+                                                                centr[t],nn[t],ne[t],
                                                                 dof[t],vfs[t])
 
         # Sensitivity-based virtual fields
@@ -98,6 +99,20 @@ def VFM(prjnm):
         # Apply user-defined properties constraints
         if len(constr) > 0:
             props = _funcs.properties_constraints(props,constr)
+
+        layers = [[[],[],[]]]*nt
+        if dof[0] == 3:
+            coordpel = [None]*nt
+            coordpel[0] = coord[0][conn[0]]
+
+            for i in range(ne[0]):
+                zcoords = 2 * np.unique(coordpel[0][i,:,2]) / thk[0]
+                if -1 in zcoords:
+                    layers[0][0].append(i)
+                elif 1 in zcoords:
+                    layers[0][2].append(i)
+                else:
+                    layers[0][1].append(i)
 
         # Perform vfm simulation with given material properties
         ivw,evw,phi,success = _funcs.simulation(strain,rot,dfgrd,rotm,force,
@@ -132,7 +147,7 @@ def VFM(prjnm):
                                dfgrd[t],vol[t],time[t],rotm[t],vfs[t],ne[t],
                                dof[t],ndi[t],nshr[t],ntens[t],ncomp[t],
                                nstatev[t],nvfs[t],nf[t],test[t],nt,nprops,
-                               props,vars,nlgeom,fout,dirout)
+                               props,vars,nlgeom,fout,dirout,vfsu)
 
     return
 
@@ -142,7 +157,7 @@ if __name__ == '__main__':
     _utils.clear_screen()
 
     # Name of project
-    prjname = 'Debug'
+    prjname = 'Debug-3D'
 
     # Name of project from command line
     if len(sys.argv) > 1:

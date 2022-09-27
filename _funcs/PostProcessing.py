@@ -5,7 +5,7 @@ import _utils
 
 def post_processing(coord,displ,conn,strain,rot,dfgrd,vol,time,rotm,vfs,ne,dof,
                     ndi,nshr,ntens,ncomp,nstatev,nvfs,nf,test,nt,nprops,props,
-                    vars,nlgeom,fout,dirout):
+                    vars,nlgeom,fout,dirout,vfsu):
     """
     Post-processing of best solution data and export. 
 
@@ -100,6 +100,6 @@ def post_processing(coord,displ,conn,strain,rot,dfgrd,vol,time,rotm,vfs,ne,dof,
     # Export model of best solution to paraview
     _funcs.export_paraview(coord,displ,conn,strain,vol,stress,statev[...,0],
                            pstrain,de33,pkstress,vfs,ss,iss,ne,dof,nvfs,nf,
-                           test,nt,fout,dirout)
+                           test,nt,fout,dirout,vfsu)
 
     return

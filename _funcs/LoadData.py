@@ -39,15 +39,15 @@ def load_data(prjnm,test,nt):
     """
 
     # Initialize data variables
+    time = [None]*nt
     nf = np.zeros(nt,dtype=int)
+    thk = np.zeros(nt)
+    ori = np.zeros(nt)
+    force = [None]*nt
     coord = [None]*nt
     conn = [None]*nt
     displ = [None]*nt
-    force = [None]*nt
-    time = [None]*nt
     centr = [None]*nt
-    thk = np.zeros(nt)
-    ori = np.zeros(nt)
 
     # Set project directory
     dir = os.path.join(os.getcwd(),'input',prjnm)
@@ -67,6 +67,14 @@ def load_data(prjnm,test,nt):
         # Get number of time increments
         nf[t] = len(time[t])
 
+        # Load specimen thickness
+        filename = f'{filesdir}_Thickness.csv'
+        thk[t] = float(np.loadtxt(filename,skiprows=1,delimiter=';'))
+
+        # Load material orientation
+        filename = f'{filesdir}_Orientation.csv'
+        ori[t] = 90 - float(np.loadtxt(filename,skiprows=1,delimiter=';'))
+
         # Load global forces
         filename = f'{filesdir}_Force.csv'
         force[t] = np.loadtxt(filename,skiprows=1,delimiter=';')
@@ -79,10 +87,16 @@ def load_data(prjnm,test,nt):
         filename = f'{filesdir}_Nodes.csv'
         coord[t] = np.loadtxt(filename,skiprows=1,delimiter=';')[:,1:]
 
-        # Translate xyz origin to center of specimen
-        lmin = np.nanmin(coord[t],0)
-        lmax = np.nanmax(coord[t],0)
-        coord[t] = coord[t] - (lmin + lmax)/2
+        # Translate xy origin to center of specimen
+        xymin = np.nanmin(coord[t][:,:2],0)
+        xymax = np.nanmax(coord[t][:,:2],0)
+        coord[t][:,:2] = coord[t][:,:2] - (xymin + xymax)/2
+
+        # Translate z origin to front surface of specimen
+        if coord[t].shape[1] == 3:
+            zmin = np.nanmin(coord[t][:,2],0)
+            zmax = np.nanmax(coord[t][:,2],0)
+            coord[t][:,2] = thk[t] * (coord[t][:,2] - zmin) / (zmax - zmin)
 
         # Load elements connectivity
         filename = f'{filesdir}_Elements.csv'
@@ -93,14 +107,6 @@ def load_data(prjnm,test,nt):
         for f in range(nf[t]):
             filename = f'{filesdir}_U_{f}.csv'
             displ[t][f] = np.loadtxt(filename,skiprows=1,delimiter=';')[:,1:]
-
-        # Load specimen thickness
-        filename = f'{filesdir}_Thickness.csv'
-        thk[t] = float(np.loadtxt(filename,skiprows=1,delimiter=';'))
-
-        # Load material orientation
-        filename = f'{filesdir}_Orientation.csv'
-        ori[t] = 90 - float(np.loadtxt(filename,skiprows=1,delimiter=';'))
 
         # Compute elements centroid
         centr[t] = np.mean(coord[t][conn[t]],1)

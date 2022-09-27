@@ -7,7 +7,7 @@ from scipy.fftpack import ss_diff
 import _utils
 
 def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
-                    pkstress,vfs,ss,iss,ne,dof,nvfs,nf,test,nt,fout,dirout):
+                    pkstress,vfs,ss,iss,ne,dof,nvfs,nf,test,nt,fout,dirout,vfsu):
     """
     Export experimental finite element mesh to paraview file.
 
@@ -81,6 +81,8 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
     if 'ud' in list(vfs.keys()):
         vfs['e'] = np.repeat(vfs['e'],nf,1)
 
+        vfsu = np.repeat(vfsu,nf,1)
+
     # Reshape virtual fields to tensor format
     vfs['e'] = np.reshape(vfs['e'],(nvfs,nf,ne,dof,dof))
 
@@ -115,6 +117,10 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
                      'PK': [pkstress[f,...]],
                     'VOL': [vol],
                     }
+
+            # Add virtual displacement fields
+            for i in range(nvfs):
+                pdata[f'VF{i+1}'] = vfsu[i,f,...]
 
             # Add virtual strain fields
             for i in range(nvfs):

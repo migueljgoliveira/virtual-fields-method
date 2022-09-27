@@ -38,5 +38,9 @@ from .WriteVirtualWork import *
 from .PostProcessing import *
 from .ExportParaview import *
 
+# temporary
+from .tmpInternalWork import *
+from .tmpInternalWork2 import *
+
 # f2py
 import _funcs.ummdp_vfm as ummdp_vfm

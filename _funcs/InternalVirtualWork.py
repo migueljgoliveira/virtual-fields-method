@@ -72,6 +72,8 @@ def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
         # Compute 1st piola-kirchhoff stress
         pkstress = _funcs.piola_kirchhoff_stress(stress,de33,dfgrd,ne,dof,nf)
 
+        # _funcs.tmp_internal_work2(strain,rot,rotm,vol,pkstress,ne,dof,ndi,ntens,nf,fout,layers)
+
         # Compute internal virtual work
         ivw = pkstress[None] * vfs * vol[None,None,:,None]
 
