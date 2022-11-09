@@ -1,6 +1,6 @@
 import numpy as np
 
-def polar_decomposition(dfgrd,dof,side='left'):
+def polar_decomposition(dfgrd,side='left'):
     """
     Perform the polar decomposition of the deformation gradient.
 
@@ -8,8 +8,6 @@ def polar_decomposition(dfgrd,dof,side='left'):
     ----------
     dfgrd : (nf,ne,dof,dof) , float
         Deformation gradient.
-    dof : int
-        Number of degrees of freedom.
 
     Returns
     -------

@@ -100,25 +100,10 @@ def VFM(prjnm):
         if len(constr) > 0:
             props = _funcs.properties_constraints(props,constr)
 
-        layers = [[[],[],[]]]*nt
-        if dof[0] == 3:
-            coordpel = [None]*nt
-            coordpel[0] = coord[0][conn[0]]
-
-            for i in range(ne[0]):
-                zcoords = 2 * np.unique(coordpel[0][i,:,2]) / thk[0]
-                if -1 in zcoords:
-                    layers[0][0].append(i)
-                elif 1 in zcoords:
-                    layers[0][2].append(i)
-                else:
-                    layers[0][1].append(i)
-
         # Perform vfm simulation with given material properties
-        ivw,evw,phi,success = _funcs.simulation(strain,rot,dfgrd,rotm,force,
-                                                vol,vfs,ne,dof,ndi,nshr,ntens,
-                                                nstatev,nvfs,nf,nt,nprops,
-                                                props,nlgeom,fout)
+        ivw,evw,phi,_ = _funcs.simulation(strain,rot,dfgrd,rotm,force,vol,vfs,
+                                          ne,dof,ndi,nshr,ntens,nstatev,nvfs,
+                                          nf,nt,nprops,props,nlgeom,fout)
 
         # Write virtual work of given material properties
         for t in range(nt):
@@ -157,7 +142,7 @@ if __name__ == '__main__':
     _utils.clear_screen()
 
     # Name of project
-    prjname = 'Debug-3D'
+    prjname = 'H-Dogbone-DP780-15-3D'
 
     # Name of project from command line
     if len(sys.argv) > 1:

@@ -55,7 +55,7 @@ def log_strain(coord,displ,conn,rotm,thk,ne,npe,dof,ndi,ntens,nf):
     dfgrd = _funcs.deformation_gradient(displ[:,conn],dNdnr,jac,dof)
 
     # Polar decomposition of deformation gradient to left stretch tensor
-    rot,strch = _funcs.polar_decomposition(dfgrd,dof,side='left')
+    rot,strch = _funcs.polar_decomposition(dfgrd,side='left')
 
     # Logarithmic strain in global csys
     eigv,eigpr = np.linalg.eig(strch)
