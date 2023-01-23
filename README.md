@@ -73,4 +73,4 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
 - **`*Constraints`** : Define constraints between properties.
   - Line 1: Give total number of properties with constraints.
   - Line 2: Give number of constrained property and constraint equation, separated by a comma.
-  - The constraint equation should be defined using Python mathematical syntax (e.g. `[``)`), and other properties can be used inside square brackets. Repeat this data line as often as necessary to define all properties with constraints.
+  - The constraint equation should be defined using Python mathematical syntax (e.g. `[]`,`()`,`*`,`**`,`/`), and other properties can be used inside square brackets. Repeat this data line as often as necessary to define all properties with constraints.
