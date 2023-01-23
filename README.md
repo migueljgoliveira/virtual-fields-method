@@ -29,6 +29,12 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
   - **`*Identification`** is used to perform the parameter identification.
   - **`*Simulation`** is used to perform one run using the prescribed properties.
 
+- **`*Tests`** Define tests.
+  - Line 1: Give number of tests.
+  - Line 2: Give name of first test. Repeat this data line as often as necessary to define the name of all tests. The test name should correspond to the data files folder of each test.
+  - If this keyword is omitted only one test is considered named after `prjname`.
+
+
 - **`*Virtual Fields`** : Define type of virtual fields.
   - First Line: `UD` (User-Defined) or `SB` (Sensivity-Based).
   - `UD`
@@ -43,11 +49,6 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
   - Line 1: Give property number and identification flag. Set identification flag to `0` to define a fixed property or to `1` to define an identification property. Repeat this data line as often as necessary to define all properties.
 
 ##### Optional Keywords
-
-- **`*Tests`** Define tests.
-  - Line 1: Give number of tests.
-  - Line 2: Give name of first test. Repeat this data line as often as necessary to define the name of all tests. The test name should correspond to the data files folder of each test.
-  - If this keyword is omitted only one test is considered named after `prjname`.
 
 - **`*Output`** : Define output folder name.
   - Line 1: Give name of the output folder.
