@@ -36,16 +36,21 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
 - **`*Virtual Fields`** : Define type of virtual fields.
   - Line 1: Give the number of test and type of virtual field for given test, separated by a comma.
     - Options for type of virtual fields: `UD` (User-Defined) or `SB` (Sensivity-Based). 
-  - Line 1: If `UD` option is selected, give numbers of the virtual fields to be used, after `UD` and separated by a comma. 
+  - Line 1: If `UD` option is selected, give numbers of the virtual fields to be used (e.g. `1`, `2`), after `UD` and separated by a comma. 
   - Repeat data line as often as necessary to define virtual fields for each test.
   - `SB` (Not yet available)
 
 - **`*Properties`** : Define initial properties.
-  - Line 1: Give number of properties.
-  - Line 2: Give property number and its initial value. The first property should start at 0. Repeat this data line as often as necessary to define all properties.
+  - Line 1: Give total number of properties.
+  - Line 2: Give property number and its initial value, separated by a comma.
+  - The first property number should start at 0.
+  - Repeat this data line as often as necessary to define all properties.
+  - See UMMDp documentation for more information on the properties definition.
 
-- **`*Variables`**: Define properties to be identified. 
-  - Line 1: Give property number and identification flag. Set identification flag to `0` to define a fixed property or to `1` to define an identification property. Repeat this data line as often as necessary to define all properties.
+- **`*Variables`**: Define the identification parameters. 
+  - Line 1: Give property number and identification flag (`0` or `1`), separated by a comma. 
+  - Set identification flag to `0` to define a fixed property or to `1` to define an identification property.
+  - Mandatory to repeat this data line as often as necessary to define all properties.
 
 ##### Optional Keywords
 
