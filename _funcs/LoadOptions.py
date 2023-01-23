@@ -3,7 +3,6 @@ import re
 import numpy as np
 
 import _utils
-import _funcs
 
 def load_tests(data,ln):
     """
