@@ -26,8 +26,8 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
 
 - **`*Identification`** or **`*Simulation`** : Define type of computation.
   - Only one should be selected. 
-  - **`*Identification`** is used to perform the parameters identification.
-  - **`*Simulation`** is used to perform one run using the given properties.
+  - **`*Identification`** is used to perform the parameter identification.
+  - **`*Simulation`** is used to perform one run using the prescribed properties.
 
 - **`*Virtual Fields`** : Define type of virtual fields.
   - First Line: `UD` (User-Defined) or `SB` (Sensivity-Based).
