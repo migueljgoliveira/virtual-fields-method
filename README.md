@@ -8,7 +8,9 @@
 
 #### Data Files
 
-- `prjname` : name of project.
+- `prjname`: Name of the project.
+
+- See projects `Debug-2D` and `Debug-3D` as examples. 
 
 The input data files should be located in a folder named `prjname` and inside the `input` folder located in the root directory. The required data files are as followes and should be named accordingly:
 - `prjname`_Nodes.csv
