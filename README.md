@@ -2,12 +2,13 @@
 
 #### Dependencies
 
-- Python (>= 3.7), numpy (>= 1.21.5), scipy (>= 1.7.3), meshio (>=5.0.4)
+- Code: python (>= 3.7), numpy (>= 1.21.5), scipy (>= 1.7.3), meshio (>=5.0.4)
+- ParaView: https://www.paraview.org/download/
 
-
-- `prjname` : name of project.
 
 #### Data Files
+
+- `prjname` : name of project.
 
 The input data files should be located in a folder named `prjname` and inside the `input` folder located in the root directory. The required data files are as followes and should be named accordingly:
 - `prjname`_Nodes.csv
