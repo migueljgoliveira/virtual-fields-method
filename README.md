@@ -29,11 +29,9 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
   - **`*Identification`** is used to perform the parameter identification.
   - **`*Simulation`** is used to perform one run using the prescribed properties.
 
-- **`*Tests`** Define tests.
-  - Line 1: Give number of tests.
-  - Line 2: Give name of first test. Repeat this data line as often as necessary to define the name of all tests. The test name should correspond to the data files folder of each test.
-  - If this keyword is omitted only one test is considered named after `prjname`.
-
+- **`*Tests`** Define the number and the name of tests.
+  - Line 1: Give total number of tests.
+  - Line 2: Give number and name of first test. Repeat this data line as often as necessary to define the name of all tests. The test name should correspond to the data files folder of each test.
 
 - **`*Virtual Fields`** : Define type of virtual fields.
   - First Line: `UD` (User-Defined) or `SB` (Sensivity-Based).
@@ -52,15 +50,15 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
 
 - **`*Output`** : Define output folder name.
   - Line 1: Give name of the output folder.
-  - If this keyword is omitted the output folder is named after `prjname`.
+  - If this keyword is omitted the output folder defaults to `prjname`.
  
 - **`*Nlgeom`** : Define small or large deformation framework.
   - Line 1: `0` (small deformation) or `1` (large deformation).framework. 
-  - If this keyword is omitted the large deformation framework is used.
+  - If this keyword is omitted defaults to large deformation framework.
 
-- **`*Algorithm`** : Define optimization algorithm.
-  - Line 1: `LM` (Levenberg-Marquardt) or `DE` (Differential Evolution).
-  - If this keyword is omitted `LM` is used.
+- **`*Optimization`** : Define optimization parameters.
+  - Line 1: Give the tolerance criterion and the maximum number of iterations, separated by a comma. 
+  - If this keyword is omitted the tolerance is defaults to 1e-8 and the maximum number of iteratins to 500.
 
 - **`*Boundaries`** : Define identification properties boundaries.
   - Line 1: Give number of identification properties with boundaries.
