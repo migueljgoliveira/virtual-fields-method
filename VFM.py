@@ -142,7 +142,7 @@ if __name__ == '__main__':
     _utils.clear_screen()
 
     # Name of project
-    prjname = 'H-Dogbone-DP780-15-3D'
+    prjname = 'Debug-2D'
 
     # Name of project from command line
     if len(sys.argv) > 1:
