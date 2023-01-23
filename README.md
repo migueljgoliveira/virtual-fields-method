@@ -1,13 +1,8 @@
 # Virtual Fields Method
-
-[![Build Status](https://travis-ci.org/kubernetes-client/python.svg?branch=master)](https://travis-ci.org/kubernetes-client/python)
-[![PyPI version](https://badge.fury.io/py/kubernetes.svg)](https://badge.fury.io/py/kubernetes)
-[![codecov](https://codecov.io/gh/kubernetes-client/python/branch/master/graph/badge.svg)](https://codecov.io/gh/kubernetes-client/python "Non-generated packages only")
-[![pypi supported versions]()]()
-
+[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
 #### Dependencies
 
-- Python, numpy ($>=$ 1.21.5), scipy (>= 1.7.3), 
+- Python (>= 3.7), numpy (>= 1.21.5), scipy (>= 1.7.3), meshio (>=5.0.4)
 
 
 - `prjname` : name of project.
