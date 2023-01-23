@@ -1,8 +1,8 @@
 # Virtual Fields Method
 
-#### Requirements
+#### Dependencies
 
-- ParaView
+- Python, numpy (>= 1.21.5), scipy (>= 1.7.3), 
 
 
 - `prjname` : name of project.
