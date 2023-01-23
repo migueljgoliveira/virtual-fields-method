@@ -31,40 +31,42 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
 
 - **`*Tests`** Define the number and the name of tests.
   - Line 1: Give total number of tests.
-  - Line 2: Give number and name of first test. Repeat this data line as often as necessary to define the name of all tests. The test name should correspond to the data files folder of each test.
+  - Line 2: Give number and name of first test.
+    - Repeat this data line as often as necessary to define the name of all tests.
+    - The test name should correspond to the data files folder of each test.
 
 - **`*Virtual Fields`** : Define type of virtual fields.
   - Line 1: Give the number of test and type of virtual field for given test, separated by a comma.
     - Options for type of virtual fields: `UD` (User-Defined) or `SB` (Sensivity-Based). 
   - Line 1: If `UD` option is selected, give numbers of the virtual fields to be used (e.g. `1`, `2`), after `UD` and separated by a comma. 
-  - Repeat data line as often as necessary to define virtual fields for each test.
-  - `SB` (Not yet available)
+    - Repeat data line as often as necessary to define virtual fields for each test.
+    - `SB` (Not yet available)
 
 - **`*Properties`** : Define initial properties.
   - Line 1: Give total number of properties.
   - Line 2: Give property number and its initial value, separated by a comma.
-  - The first property number should start at 0.
-  - Repeat this data line as often as necessary to define all properties.
-  - See UMMDp documentation for more information on the properties definition.
+    - The first property number should start at 0.
+    - Repeat this data line as often as necessary to define all properties.
+    - See UMMDp documentation for more information on the properties definition.
 
 - **`*Variables`**: Define the identification parameters. 
   - Line 1: Give property number and identification flag (`0` or `1`), separated by a comma. 
-  - Set identification flag to `0` to define a fixed property or to `1` to define an identification property.
-  - Mandatory to repeat this data line as often as necessary to define all properties.
+    - Set identification flag to `0` to define a fixed property or to `1` to define an identification property.
+    - Mandatory to repeat this data line as often as necessary to define all properties.
 
 ##### Optional Keywords
 
 - **`*Output`** : Define output folder name.
   - Line 1: Give name of the output folder.
-  - If this keyword is omitted the output folder defaults to `prjname`.
+    - If this keyword is omitted the output folder defaults to `prjname`.
  
 - **`*Nlgeom`** : Define small or large deformation framework.
   - Line 1: `0` (small deformation) or `1` (large deformation).framework. 
-  - If this keyword is omitted defaults to large deformation framework.
+    - If this keyword is omitted defaults to large deformation framework.
 
 - **`*Optimization`** : Define optimization parameters.
   - Line 1: Give the tolerance criterion and the maximum number of iterations, separated by a comma. 
-  - If this keyword is omitted the tolerance is defaults to 1e-8 and the maximum number of iteratins to 500.
+    - If this keyword is omitted the tolerance is defaults to 1e-8 and the maximum number of iteratins to 500.
 
 - **`*Boundaries`** : Define identification properties boundaries.
   - Line 1: Give number of identification properties with boundaries.
@@ -73,4 +75,5 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
 - **`*Constraints`** : Define constraints between properties.
   - Line 1: Give total number of properties with constraints.
   - Line 2: Give number of constrained property and constraint equation, separated by a comma.
-  - The constraint equation should be defined using Python mathematical syntax (e.g. `[]`,`()`,`*`,`**`,`/`), and other properties can be used inside square brackets. Repeat this data line as often as necessary to define all properties with constraints.
+    - The constraint equation should be defined using Python mathematical syntax (e.g. `[]`,`()`,`*`,`**`,`/`), and to call other properties can be used inside square brackets (e.g. to use property number 4 in the equation `[4]`).
+    - Repeat this data line as often as necessary to define all properties with constraints.
