@@ -34,10 +34,11 @@ An options file named `prjname`.vfm should be created and placed inside the inpu
   - Line 2: Give number and name of first test. Repeat this data line as often as necessary to define the name of all tests. The test name should correspond to the data files folder of each test.
 
 - **`*Virtual Fields`** : Define type of virtual fields.
-  - First Line: `UD` (User-Defined) or `SB` (Sensivity-Based).
-  - `UD`
-    - Line 1: Give types of user-defined virtual fields. Repeat this data line as often as necessary to define virtual fields for each test.
-  - `SB` (Not Yet Available)
+  - Line 1: Give the number of test and type of virtual field for given test, separated by a comma.
+    - Options for type of virtual fields: `UD` (User-Defined) or `SB` (Sensivity-Based). 
+  - Line 1: If `UD` option is selected, give numbers of the virtual fields to be used, after `UD` and separated by a comma. 
+  - Repeat data line as often as necessary to define virtual fields for each test.
+  - `SB` (Not yet available)
 
 - **`*Properties`** : Define initial properties.
   - Line 1: Give number of properties.
