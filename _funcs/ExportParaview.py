@@ -95,7 +95,7 @@ def export_paraview(coord,displ,conn,strain,vol,stress,peeq,pstrain,de33,
 
     # Set output folder
     if nt > 1:
-        outF = os.path.join(dirout,fout,test)
+        outF = os.path.join(dirout,test,test)
     else:
         outF = os.path.join(dirout,fout)
 

@@ -141,7 +141,7 @@ if __name__ == '__main__':
     _utils.clear_screen()
 
     # Name of project
-    prjname = 'Debug-2D'
+    prjname = 'Benchmark'
 
     # Name of project from command line
     if len(sys.argv) > 1:

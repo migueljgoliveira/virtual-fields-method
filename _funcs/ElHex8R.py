@@ -22,6 +22,22 @@ def el_hex8r(coord):
     -----
     ne : int
         Number of elements.
+
+    Nodes Numbering : Element of Size 2
+
+                                    ( x, y, z)
+        4---------1           O --> ( 0, 0, 1)
+        |         |      Node 1 --> ( 1, 1, 1)
+        |    O    |      Node 2 --> ( 1,-1, 1)
+        |         |      Node 3 --> (-1, 1, 1)
+        3---------2      Node 4 --> (-1,-1, 1)
+
+                                    ( x, y, z)
+        8---------5           O --> ( 0, 0,-1)
+        |         |      Node 5 --> ( 1, 1,-1)
+        |    O    |      Node 6 --> ( 1,-1,-1)
+        |         |      Node 7 --> (-1, 1,-1)
+        7---------6      Node 8 --> (-1,-1,-1)
     """
 
     # Partial derivatives of shape function wrt natural coordinates.

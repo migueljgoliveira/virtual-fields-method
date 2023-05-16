@@ -107,6 +107,95 @@ def user_defined_virtual_fields(coord,centr,nn,ne,dof,vfs):
                 vfs['e'][i,...,2] = -0.5/h * sin(pi*xe/w) * sin(0.5*pi*ye/h)
                 vfs['e'][i,...,3] =    1/w * cos(pi*xe/w) * cos(0.5*pi*ye/h)
 
+            if ivf == 3:
+                vfs['u'][i,:,0] = xu/w * (abs(yu)-h)/h
+                vfs['u'][i,:,1] = 0
+
+                vfs['e'][i,...,0] = (abs(ye)-h) / (w*h)
+                vfs['e'][i,...,1] = 0
+                
+                vfs['e'][i,...,2] = sign(ye) * xe/(w*h)
+                vfs['e'][i,...,3] = 0
+
+            if ivf == 4:
+                vfs['u'][i,:,0] = xu*(yu**2-yu*h) / (w*h**2)
+                vfs['u'][i,:,1] = 0
+
+                vfs['e'][i,...,0] = (ye**2-ye*h) / (w*h**2)
+                vfs['e'][i,...,1] = 0
+
+                vfs['e'][i,...,2] = xe*(2*ye-h) / (w*h**2)
+                vfs['e'][i,...,3] = 0
+
+            if ivf == 5:
+                vfs['u'][i,:,0] = sin(pi*xu/w) * sin(pi*yu/h)
+                vfs['u'][i,:,1] = 0
+
+                vfs['e'][i,...,0] = pi/w * cos(pi*xe/w) * sin(pi*ye/h)
+                vfs['e'][i,...,1] = 0
+
+                vfs['e'][i,...,2] = pi/h * sin(pi*xe/w) * cos(pi*ye/h)
+                vfs['e'][i,...,3] = 0
+
+            if ivf == 6:
+                vfs['u'][i,:,0] = 0
+                vfs['u'][i,:,1] = sin(pi*xu/w) * sin(pi*yu/h)
+
+                vfs['e'][i,...,0] = 0
+                vfs['e'][i,...,1] = pi/h * sin(pi*xe/w) * cos(pi*ye/h)
+
+                vfs['e'][i,...,2] = 0
+                vfs['e'][i,...,3] = pi/w * cos(pi*xe/w) * sin(pi*ye/h)
+
+            if ivf == 7:
+                vfs['u'][i,:,0] = 0
+                vfs['u'][i,:,1] = xu*(yu**2-yu*h) / (w*h**2)
+
+                vfs['e'][i,...,0] = 0
+                vfs['e'][i,...,1] = xe*(2*ye-h) / (w*h**2)
+
+                vfs['e'][i,...,2] = 0
+                vfs['e'][i,...,3] = (ye**2-ye*h) / (w*h**2)
+
+            if ivf == 8: 
+                vfs['u'][i,:,0] = 0
+                vfs['u'][i,:,1] = (yu**2*h-yu**3)/h**3 * sin(pi*xu/w)
+
+                vfs['e'][i,...,0] = 0
+                vfs['e'][i,...,1] = (2*h*ye-3*ye**2)/h**3 * sin(pi*xe/w)
+
+                vfs['e'][i,...,2] = 0
+                vfs['e'][i,...,3] = pi/(w*h**3)* (h*ye**2-ye**3) * cos(pi*xe/w)
+
+            if ivf == 9:
+                vfs['u'][i,:,0] = ((h**3-yu**3)/h**3) * sin(pi*xu/w)
+                vfs['u'][i,:,1] = 0
+
+                vfs['e'][i,...,0] = pi*(h**3-ye**3)/(w*h**3) * cos(pi*xe/w)
+                vfs['e'][i,...,1] = 0
+
+                vfs['e'][i,...,2] = - ((3*ye**2)/h**3) * sin(pi*xe/w)
+                vfs['e'][i,...,3] = 0
+
+            if ivf == 10:
+                vfs['u'][i,:,0] = 0
+                vfs['u'][i,:,1] = (yu*h**2-yu**3)/h**3 * sin(pi*xu/w)
+
+                vfs['e'][i,...,0] = 0
+                vfs['e'][i,...,1] = (h**2-3*ye**2)/h**3 * sin(pi*xe/w)
+
+                vfs['e'][i,...,2] = 0
+                vfs['e'][i,...,3] = pi/(w*h**3)* (ye*h**2-ye**3) * cos(pi*xe/w)
+
+            if ivf == 11:
+                vfs['u'][i,:,0] = sin(pi*xu/w) * sin(pi*yu/h)
+                vfs['u'][i,:,1] = sin(pi*xu/w) * sin(pi*yu/h)
+
+                vfs['e'][i,...,0] = pi/w * cos(pi*xe/w) * sin(pi*ye/h)
+                vfs['e'][i,...,1] = pi/h * sin(pi*xe/w) * cos(pi*ye/h)
+
+                vfs['e'][i,...,2] = pi/h * sin(pi*xe/w) * cos(pi*ye/h)
+                vfs['e'][i,...,3] = pi/w * cos(pi*xe/w) * sin(pi*ye/h)
 
             i += 1
 
@@ -215,6 +304,24 @@ def user_defined_virtual_fields(coord,centr,nn,ne,dof,vfs):
                                                sin(0.5*pi*ye/h) *
                                                sin(0.5*pi*ze/t) )
 
+            if ivf == 3:
+                vfs['u'][i,:,0] = xu/w * (abs(yu)-h)/h
+                vfs['u'][i,:,1] = 0
+                vfs['u'][i,:,2] = 0
+
+                vfs['e'][i,...,0] = (abs(ye)-h) / (w*h)
+                vfs['e'][i,...,1] = 0
+                vfs['e'][i,...,2] = 0
+
+                vfs['e'][i,...,3] = sign(ye) * xe/(w*h)
+                vfs['e'][i,...,4] = 0
+
+                vfs['e'][i,...,5] = 0
+                vfs['e'][i,...,6] = 0
+
+                vfs['e'][i,...,7] = 0
+                vfs['e'][i,...,8] = 0
+
             i += 1
 
     # Check for absolute zero
@@ -223,97 +330,3 @@ def user_defined_virtual_fields(coord,centr,nn,ne,dof,vfs):
     vfs['e'][abs(vfs['e']) < tol] = 0
 
     return vfs,nvfs,vfsu
-
-
-# List of additional virtual fields
-
-# 2D
-
-# 1
-# vfs['u'][i,:,0] = xu/w * (abs(yu)-h)/h
-# vfs['u'][i,:,1] = 0
-# vfs['e'][i,...,0] = (abs(ye)-h) / (w*h)
-# vfs['e'][i,...,1] = 0
-# vfs['e'][i,...,2] = sign(ye) * xe/(w*h)
-# vfs['e'][i,...,3] = 0
-
-# 2
-# vfs['u'][i,:,0] = xu*(yu**2-yu*h) / (w*h**2)
-# vfs['u'][i,:,1] = 0
-# vfs['e'][i,...,0] = (ye**2-ye*h) / (w*h**2)
-# vfs['e'][i,...,1] = 0
-# vfs['e'][i,...,2] = xe*(2*ye-h) / (w*h**2)
-# vfs['e'][i,...,3] = 0
-
-# 3
-# vfs['u'][i,:,0] = sin(pi*xu/w) * sin(pi*yu/h)
-# vfs['u'][i,:,1] = 0
-# vfs['e'][i,...,0] = pi/w * cos(pi*xe/w) * sin(pi*ye/h)
-# vfs['e'][i,...,1] = 0
-# vfs['e'][i,...,2] = pi/h * sin(pi*xe/w) * cos(pi*ye/h)
-# vfs['e'][i,...,3] = 0
-
-# 4
-# vfs['u'][i,:,0] = 0
-# vfs['u'][i,:,1] = sin(pi*xu/w) * sin(pi*yu/h)
-# vfs['e'][i,...,0] = 0
-# vfs['e'][i,...,1] = pi/h * sin(pi*xe/w) * cos(pi*ye/h)
-# vfs['e'][i,...,2] = 0
-# vfs['e'][i,...,3] = pi/w * cos(pi*xe/w) * sin(pi*ye/h)
-
-# 5
-# vfs['u'][i,:,0] = 0
-# vfs['u'][i,:,1] = xu*(yu**2-yu*h) / (w*h**2)
-# vfs['e'][i,...,0] = 0
-# vfs['e'][i,...,1] = xe*(2*ye-h) / (w*h**2)
-# vfs['e'][i,...,2] = 0
-# vfs['e'][i,...,3] = (ye**2-ye*h) / (w*h**2)
-
-# 6
-# vfs['u'][i,:,0] = 0
-# vfs['u'][i,:,1] = (yu**2*h-yu**3)/h**3 * sin(pi*xu/w)
-# vfs['e'][i,...,0] = 0
-# vfs['e'][i,...,1] = (2*h*ye-3*ye**2)/h**3 * sin(pi*xe/w)
-# vfs['e'][i,...,2] = 0
-# vfs['e'][i,...,3] = pi/(w*h**3)* (h*ye**2-ye**3) * cos(pi*xe/w)
-
-# 7
-# vfs['u'][i,:,0] = ((h**3-yu**3)/h**3) * sin(pi*xu/w)
-# vfs['u'][i,:,1] = 0
-# vfs['e'][i,...,0] = pi*(h**3-ye**3)/(w*h**3) * cos(pi*xe/w)
-# vfs['e'][i,...,1] = 0
-# vfs['e'][i,...,2] = - ((3*ye**2)/h**3) * sin(pi*xe/w)
-# vfs['e'][i,...,3] = 0
-
-# 8
-# vfs['u'][i,:,0] = 0
-# vfs['u'][i,:,1] = (yu*h**2-yu**3)/h**3 * sin(pi*xu/w)
-# vfs['e'][i,...,0] = 0
-# vfs['e'][i,...,1] = (h**2-3*ye**2)/h**3 * sin(pi*xe/w)
-# vfs['e'][i,...,2] = 0
-# vfs['e'][i,...,3] = pi/(w*h**3)* (ye*h**2-ye**3) * cos(pi*xe/w)
-
-# 9
-# vfs['u'][i,:,0] = sin(pi*xu/w) * sin(pi*yu/h)
-# vfs['u'][i,:,1] = sin(pi*xu/w) * sin(pi*yu/h)
-# vfs['e'][i,...,0] = pi/w * cos(pi*xe/w) * sin(pi*ye/h)
-# vfs['e'][i,...,1] = pi/h * sin(pi*xe/w) * cos(pi*ye/h)
-# vfs['e'][i,...,2] = pi/h * sin(pi*xe/w) * cos(pi*ye/h)
-# vfs['e'][i,...,3] = pi/w * cos(pi*xe/w) * sin(pi*ye/h)
-
-
-# 3D
-
-# 1
-# vfs['u'][i,:,0] = xu/w * (abs(yu)-h)/h
-# vfs['u'][i,:,1] = 0
-# vfs['u'][i,:,2] = 0
-# vfs['e'][i,...,0] = (abs(ye)-h) / (w*h)
-# vfs['e'][i,...,1] = 0
-# vfs['e'][i,...,2] = 0
-# vfs['e'][i,...,3] = sign(ye) * xe/(w*h)
-# vfs['e'][i,...,4] = 0
-# vfs['e'][i,...,5] = 0
-# vfs['e'][i,...,6] = 0
-# vfs['e'][i,...,7] = 0
-# vfs['e'][i,...,8] = 0

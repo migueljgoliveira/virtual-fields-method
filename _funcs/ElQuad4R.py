@@ -24,6 +24,15 @@ def el_quad4r(coord,thick):
     -----
     ne : int
         Number of elements.
+
+    Nodes Numbering : Element of Size 2
+
+                                    ( x, y)
+        3---------0           O --> ( 0, 0)
+        |         |      Node 0 --> ( 1, 1)
+        |    O    |      Node 1 --> ( 1,-1)
+        |         |      Node 2 --> (-1, 1)
+        2---------1      Node 3 --> (-1,-1)
     """
 
     # Partial derivatives of shape function wrt natural coordinates

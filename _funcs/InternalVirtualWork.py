@@ -63,7 +63,7 @@ def internal_virtual_work(strain,rot,dfgrd,rotm,vol,vfs,ne,dof,ndi,nshr,ntens,
     # # Compute hydrostatic stress on global csys
     # hydstress = _funcs.hydrostatic_stress(stress)
 
-    # # Compute deviatoric stress on global csys 
+    # # Compute deviatoric stress on global csys
     # devstress = _funcs.deviatoric_stress(stress,hydstress,dof)
 
     # Large deformation formulation
